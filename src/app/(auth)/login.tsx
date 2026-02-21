@@ -4,8 +4,17 @@ import { router } from 'expo-router';
 
 import { COLORS, FONTS, ROUTES } from '@/constants';
 import { FONT_SIZES, SPACING, BORDER_RADIUS } from '@/theme';
+import { useAppDispatch } from '@/store';
+import { enterGuestMode } from '@/store/slices/auth.slice';
 
 export default function LoginScreen() {
+  const dispatch = useAppDispatch();
+
+  function handleContinueAsGuest() {
+    dispatch(enterGuestMode());
+    router.replace(ROUTES.HOME);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -20,10 +29,18 @@ export default function LoginScreen() {
         >
           <Text style={styles.primaryButtonText}>Login</Text>
         </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.guestButton}
+          onPress={handleContinueAsGuest}
+        >
+          <Text style={styles.guestButtonText}>Continue without login</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push(ROUTES.REGISTER)}>
           <Text style={styles.linkText}>Don&apos;t have an account? Register</Text>
         </TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );
@@ -70,5 +87,17 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.SM,
     color: COLORS.PRIMARY,
     textAlign: 'center',
+  },
+  guestButton: {
+    paddingVertical: SPACING.MD,
+    borderRadius: BORDER_RADIUS.MD,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+  },
+  guestButtonText: {
+    fontFamily: FONTS.MEDIUM,
+    fontSize: FONT_SIZES.BASE,
+    color: COLORS.TEXT_SECONDARY,
   },
 });
