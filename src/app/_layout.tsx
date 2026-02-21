@@ -1,13 +1,33 @@
+import '../../global.css';
+
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 
 import { COLORS } from '@/constants';
+import { AppProviders } from '@/providers/AppProviders';
+import { UBUNTU_FONTS } from 'assets';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    ...UBUNTU_FONTS,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" backgroundColor={COLORS.BACKGROUND} />
+    <AppProviders>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -15,6 +35,6 @@ export default function RootLayout() {
           animation: 'fade',
         }}
       />
-    </SafeAreaProvider>
+    </AppProviders>
   );
 }
