@@ -12,7 +12,7 @@ export const IMAGES = {
   partialReactLogo: require('./images/partial-react-logo.png'),
 } as const;
 
-export const ubuntuFonts = {
+export const UBUNTU_FONTS = {
   Ubuntu_Regular: require('./fonts/Ubuntu/Ubuntu-Regular.ttf'),
   Ubuntu_Bold: require('./fonts/Ubuntu/Ubuntu-Bold.ttf'),
   Ubuntu_Italic: require('./fonts/Ubuntu/Ubuntu-Italic.ttf'),

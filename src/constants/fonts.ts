@@ -1,10 +1,15 @@
 const FONTS = {
-  LIGHT: 'Poppins-Light',
-  REGULAR: 'Poppins-Regular',
-  MEDIUM: 'Poppins-Medium',
-  SEMI_BOLD: 'Poppins-SemiBold',
-  BOLD: 'Poppins-Bold',
-  EXTRA_BOLD: 'Poppins-ExtraBold',
+  LIGHT: 'Ubuntu-Light',
+  REGULAR: 'Ubuntu-Regular',
+  MEDIUM: 'Ubuntu-Medium',
+  BOLD: 'Ubuntu-Bold',
+
+  SEMI_BOLD: 'Ubuntu-Bold',
+
+  LIGHT_ITALIC: 'Ubuntu-LightItalic',
+  ITALIC: 'Ubuntu-Italic',
+  MEDIUM_ITALIC: 'Ubuntu-MediumItalic',
+  BOLD_ITALIC: 'Ubuntu-BoldItalic',
 } as const;
 
 export default FONTS;
