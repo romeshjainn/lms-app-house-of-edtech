@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import Toast from 'react-native-toast-message';
 
 import { store, persistor } from '@/store';
 import { useAppInit } from '@/hooks/use-app-init';
@@ -25,6 +26,8 @@ export function AppProviders({ children }: AppProvidersProps) {
           <SafeAreaProvider>
             <StatusBar style="light" />
             <NavigationGuard>{children}</NavigationGuard>
+            {/* Toast must be last so it renders above all routes */}
+            <Toast />
           </SafeAreaProvider>
         </AppInit>
       </PersistGate>

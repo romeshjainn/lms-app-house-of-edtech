@@ -13,12 +13,12 @@ export const IMAGES = {
 } as const;
 
 export const UBUNTU_FONTS = {
-  Ubuntu_Regular: require('./fonts/Ubuntu/Ubuntu-Regular.ttf'),
-  Ubuntu_Bold: require('./fonts/Ubuntu/Ubuntu-Bold.ttf'),
-  Ubuntu_Italic: require('./fonts/Ubuntu/Ubuntu-Italic.ttf'),
-  Ubuntu_BoldItalic: require('./fonts/Ubuntu/Ubuntu-BoldItalic.ttf'),
-  Ubuntu_Light: require('./fonts/Ubuntu/Ubuntu-Light.ttf'),
-  Ubuntu_LightItalic: require('./fonts/Ubuntu/Ubuntu-LightItalic.ttf'),
-  Ubuntu_Medium: require('./fonts/Ubuntu/Ubuntu-Medium.ttf'),
-  Ubuntu_MediumItalic: require('./fonts/Ubuntu/Ubuntu-MediumItalic.ttf'),
+  'Ubuntu-Regular': require('./fonts/Ubuntu/Ubuntu-Regular.ttf'),
+  'Ubuntu-Bold': require('./fonts/Ubuntu/Ubuntu-Bold.ttf'),
+  'Ubuntu-Italic': require('./fonts/Ubuntu/Ubuntu-Italic.ttf'),
+  'Ubuntu-BoldItalic': require('./fonts/Ubuntu/Ubuntu-BoldItalic.ttf'),
+  'Ubuntu-Light': require('./fonts/Ubuntu/Ubuntu-Light.ttf'),
+  'Ubuntu-LightItalic': require('./fonts/Ubuntu/Ubuntu-LightItalic.ttf'),
+  'Ubuntu-Medium': require('./fonts/Ubuntu/Ubuntu-Medium.ttf'),
+  'Ubuntu-MediumItalic': require('./fonts/Ubuntu/Ubuntu-MediumItalic.ttf'),
 };

@@ -1,57 +1,50 @@
-import apiClient from '../api-client';
+import type {
+  AuthLoginPayload,
+  AuthRegisterPayload,
+  AuthUser,
+  LoginRequest,
+  RegisterRequest,
+} from '@/types/auth.types';
 import type { ApiResponse } from '../api-client';
+import apiClient from '../api-client';
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
+const ENDPOINTS = {
+  REGISTER: '/users/register',
+  LOGIN: '/users/login',
+  LOGOUT: '/users/logout',
+  CURRENT_USER: '/users/current-user',
+} as const;
 
-export interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-}
-
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string | null;
-  role: 'student' | 'instructor' | 'admin';
-  created_at: string;
-}
-
-export interface AuthPayload {
-  token: string;
-  user: AuthUser;
-}
-
-async function login(payload: LoginRequest): Promise<ApiResponse<AuthPayload>> {
-  const response = await apiClient.post<ApiResponse<AuthPayload>>(
-    '/auth/login',
+async function register(payload: RegisterRequest): Promise<ApiResponse<AuthRegisterPayload>> {
+  const response = await apiClient.post<ApiResponse<AuthRegisterPayload>>(
+    ENDPOINTS.REGISTER,
     payload,
   );
   return response.data;
 }
 
-async function register(
-  payload: RegisterRequest,
-): Promise<ApiResponse<AuthPayload>> {
-  const response = await apiClient.post<ApiResponse<AuthPayload>>(
-    '/auth/register',
-    payload,
-  );
+async function login(payload: LoginRequest): Promise<ApiResponse<AuthLoginPayload>> {
+  const response = await apiClient.post<ApiResponse<AuthLoginPayload>>(ENDPOINTS.LOGIN, payload);
   return response.data;
 }
 
-async function logoutSession(): Promise<ApiResponse<null>> {
-  const response = await apiClient.post<ApiResponse<null>>('/auth/logout');
+async function logoutSession(): Promise<ApiResponse<Record<string, never>>> {
+  const response = await apiClient.post<ApiResponse<Record<string, never>>>(ENDPOINTS.LOGOUT);
+  return response.data;
+}
+
+async function getCurrentUser(token?: string): Promise<ApiResponse<AuthUser>> {
+  const config = token
+    ? { headers: { Authorization: `Bearer ${token}` } }
+    : undefined;
+
+  const response = await apiClient.get<ApiResponse<AuthUser>>(ENDPOINTS.CURRENT_USER, config);
   return response.data;
 }
 
 export const authService = {
-  login,
   register,
+  login,
   logoutSession,
+  getCurrentUser,
 };
