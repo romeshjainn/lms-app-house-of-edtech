@@ -26,7 +26,6 @@ export function AppProviders({ children }: AppProvidersProps) {
           <SafeAreaProvider>
             <StatusBar style="light" />
             <NavigationGuard>{children}</NavigationGuard>
-            {/* Toast must be last so it renders above all routes */}
             <Toast />
           </SafeAreaProvider>
         </AppInit>
