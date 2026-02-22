@@ -1,85 +1,53 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { router } from 'expo-router';
 
+import CustomText from '@/components/base/AppText';
 import { COLORS, FONTS, ROUTES } from '@/constants';
-import { FONT_SIZES, SPACING, BORDER_RADIUS } from '@/theme';
+import { IMAGES } from 'assets';
 
 export default function WelcomeScreen() {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Your learning journey starts here.</Text>
-      </View>
+    <SafeAreaView className="flex-1 bg-[#F7F6FB]">
+      <View className="flex-1 items-center justify-between px-6 py-10">
+        <View className="flex-1 justify-center">
+          <Image source={IMAGES.welcome} resizeMode="contain" className="w-[280px] h-[280px]" />
+        </View>
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={() => router.push(ROUTES.LOGIN)}
-        >
-          <Text style={styles.primaryButtonText}>Login</Text>
-        </TouchableOpacity>
+        <View className="items-center px-4">
+          <CustomText
+            className="text-3xl text-gray-900 text-center"
+            style={{ fontFamily: FONTS.BOLD }}
+          >
+            Learn Anytime,
+          </CustomText>
+          <CustomText
+            className="text-3xl text-gray-900 text-center mt-1"
+            style={{ fontFamily: FONTS.BOLD }}
+          >
+            Achieve Anywhere.
+          </CustomText>
 
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => router.push(ROUTES.REGISTER)}
-        >
-          <Text style={styles.secondaryButtonText}>Create Account</Text>
-        </TouchableOpacity>
+          <CustomText className="text-base text-gray-500 text-center mt-4 leading-6">
+            Access high-quality courses, interactive lessons, and expert guidance right from your
+            phone.
+          </CustomText>
+        </View>
+
+        <View className="w-full">
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.LOGIN as never)}
+            activeOpacity={0.8}
+            style={{ backgroundColor: COLORS.PRIMARY }}
+            className=" rounded-full py-4 items-center mt-8"
+          >
+            <Text className="text-white text-base" style={{ fontFamily: FONTS.MEDIUM }}>
+              Get Started
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
-    paddingHorizontal: SPACING.LG,
-    justifyContent: 'space-between',
-    paddingBottom: SPACING.XL,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: SPACING.SM,
-  },
-  title: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.HERO,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  subtitle: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.LG,
-    color: COLORS.TEXT_SECONDARY,
-  },
-  actions: {
-    gap: SPACING.SM,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingVertical: SPACING.MD,
-    borderRadius: BORDER_RADIUS.MD,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    fontFamily: FONTS.SEMI_BOLD,
-    fontSize: FONT_SIZES.BASE,
-    color: COLORS.WHITE,
-  },
-  secondaryButton: {
-    backgroundColor: COLORS.TRANSPARENT,
-    paddingVertical: SPACING.MD,
-    borderRadius: BORDER_RADIUS.MD,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-  },
-  secondaryButtonText: {
-    fontFamily: FONTS.SEMI_BOLD,
-    fontSize: FONT_SIZES.BASE,
-    color: COLORS.PRIMARY,
-  },
-});
