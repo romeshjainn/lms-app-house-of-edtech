@@ -1,4 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -9,19 +11,16 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
-import { COLORS, FONTS } from '@/constants';
-import ROUTES from '@/constants/routes';
-import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
-import { courseService } from '@/services/api/modules/course.service';
-import { handleApiError } from '@/services/api/error-handler';
-import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { BookmarkButton } from '@/components/course/BookmarkButton';
 import { EnrollButton } from '@/components/course/EnrollButton';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
+import { COLORS, FONTS } from '@/constants';
+import ROUTES from '@/constants/routes';
+import { handleApiError } from '@/services/api/error-handler';
+import { courseService } from '@/services/api/modules/course.service';
+import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
 import type { CourseDetail } from '@/types/course.types';
-
 
 function RatingStars({ rating }: { rating: number }) {
   const full = Math.floor(rating);
@@ -41,7 +40,6 @@ function RatingStars({ rating }: { rating: number }) {
     </View>
   );
 }
-
 
 export default function CourseDetailScreen() {
   const { courseId } = useLocalSearchParams<{ courseId: string }>();
@@ -73,7 +71,11 @@ export default function CourseDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.navBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Ionicons name="arrow-back" size={22} color={COLORS.TEXT_PRIMARY} />
           </TouchableOpacity>
         </View>
@@ -89,13 +91,17 @@ export default function CourseDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.navBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Ionicons name="arrow-back" size={22} color={COLORS.TEXT_PRIMARY} />
           </TouchableOpacity>
         </View>
         <View style={styles.centeredState}>
           <Ionicons name="wifi-outline" size={52} color={COLORS.GRAY_300} />
-          <Text style={styles.errorTitle}>Couldn&apos;t load course</Text>
+          <Text style={styles.errorTitle}>Could not load course</Text>
           <Text style={styles.errorSubtitle}>{error ?? 'Unknown error'}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchDetail}>
             <Text style={styles.retryText}>Try Again</Text>
@@ -119,12 +125,7 @@ export default function CourseDetailScreen() {
           <Ionicons name="arrow-back" size={22} color={COLORS.TEXT_PRIMARY} />
         </TouchableOpacity>
 
-        <Breadcrumb
-          items={[
-            { label: 'Courses', href: ROUTES.COURSES },
-            { label: course.title },
-          ]}
-        />
+        <Breadcrumb items={[{ label: 'Courses', href: ROUTES.COURSES }, { label: course.title }]} />
 
         <BookmarkButton courseId={course.id} size={22} variant="plain" />
       </View>
@@ -133,18 +134,13 @@ export default function CourseDetailScreen() {
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-      >        <View style={styles.heroWrap}>
-          <Image
-            source={{ uri: course.thumbnail }}
-            style={styles.heroImage}
-            resizeMode="cover"
-          />          <View style={styles.categoryTag}>
-            <Text style={styles.categoryText}>
-              {course.category.replace(/-/g, ' ')}
-            </Text>
+      >   
+        <View style={styles.heroWrap}>
+          <Image source={{ uri: course.thumbnail }} style={styles.heroImage} resizeMode="cover" />
+          <View style={styles.categoryTag}>
+            <Text style={styles.categoryText}>{course.category.replace(/-/g, ' ')}</Text>
           </View>
         </View>
-
         <View style={styles.section}>
           <Text style={styles.title}>{course.title}</Text>
           <View style={styles.metaRow}>
@@ -168,16 +164,12 @@ export default function CourseDetailScreen() {
             )}
           </View>
         </View>
-
         <View style={styles.divider} />
-
         <View style={styles.section}>
           <Text style={styles.sectionHeading}>About this course</Text>
           <Text style={styles.description}>{course.description}</Text>
         </View>
-
         <View style={styles.divider} />
-
         <View style={styles.section}>
           <Text style={styles.sectionHeading}>Your instructor</Text>
           <View style={styles.instructorCard}>
@@ -225,7 +217,6 @@ export default function CourseDetailScreen() {
     </SafeAreaView>
   );
 }
-
 
 const HERO_HEIGHT = 220;
 const INSTRUCTOR_AVATAR_SIZE = 64;
@@ -459,9 +450,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.BASE,
     color: COLORS.WHITE,
   },
-  enrollButton: {
-    // Full-width within the CTA bar
-  },
+  enrollButton: {},
   bottomPad: {
     height: SPACING.MD,
   },

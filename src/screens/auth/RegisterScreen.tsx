@@ -90,10 +90,7 @@ export function RegisterScreen() {
           }),
         );
 
-        showToast.success(
-          'Your account is ready. Start learning!',
-          'Welcome aboard 🎉',
-        );
+        showToast.success('Your account is ready. Start learning!', 'Welcome aboard 🎉');
       } catch (error) {
         const appError = handleApiError(error);
         showToast.error(appError.message);

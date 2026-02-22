@@ -7,6 +7,11 @@ import { COLORS, FONTS, ROUTES } from '@/constants';
 import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { logout } from '@/store/slices/auth.slice';
+import {
+  selectEnrolledCount,
+  selectCompletedCount,
+  selectCompletionPercentage,
+} from '@/store/slices/course.slice';
 import { authService } from '@/services/api/modules/auth.service';
 import { showToast } from '@/utils/toast';
 import { AppButton } from '@/components/common/AppButton';
@@ -70,6 +75,66 @@ function RowItem({ icon, label, onPress, danger = false }: RowItemProps) {
   );
 }
 
+// ─── Learning Progress ────────────────────────────────────────────────────────
+
+interface LearningProgressProps {
+  enrolledCount: number;
+  completedCount: number;
+  completionPct: number;
+}
+
+function LearningProgress({
+  enrolledCount,
+  completedCount,
+  completionPct,
+}: LearningProgressProps) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Learning Progress</Text>
+      <View style={styles.card}>
+        {/* ── Stat row ──────────────────────────────────────────────── */}
+        <View style={progressStyles.statRow}>
+          <View style={progressStyles.stat}>
+            <Text style={progressStyles.statValue}>{enrolledCount}</Text>
+            <Text style={progressStyles.statLabel}>Enrolled</Text>
+          </View>
+          <View style={progressStyles.divider} />
+          <View style={progressStyles.stat}>
+            <Text style={progressStyles.statValue}>{completedCount}</Text>
+            <Text style={progressStyles.statLabel}>Completed</Text>
+          </View>
+          <View style={progressStyles.divider} />
+          <View style={progressStyles.stat}>
+            <Text style={[progressStyles.statValue, { color: COLORS.PRIMARY }]}>
+              {completionPct}%
+            </Text>
+            <Text style={progressStyles.statLabel}>Progress</Text>
+          </View>
+        </View>
+
+        {/* ── Progress bar ──────────────────────────────────────────── */}
+        <View style={progressStyles.barWrap}>
+          <View style={progressStyles.barTrack}>
+            <View
+              style={[
+                progressStyles.barFill,
+                { width: `${completionPct}%` },
+              ]}
+            />
+          </View>
+          <Text style={progressStyles.barLabel}>
+            {enrolledCount === 0
+              ? 'Enroll in a course to start tracking progress'
+              : completionPct === 100
+                ? 'All enrolled courses completed!'
+                : `${completedCount} of ${enrolledCount} course${enrolledCount !== 1 ? 's' : ''} completed`}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 // ─── Guest view ───────────────────────────────────────────────────────────────
 
 function GuestProfile() {
@@ -106,6 +171,9 @@ function GuestProfile() {
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user, isGuest } = useAppSelector((state) => state.auth);
+  const enrolledCount  = useAppSelector(selectEnrolledCount);
+  const completedCount = useAppSelector(selectCompletedCount);
+  const completionPct  = useAppSelector(selectCompletionPercentage);
 
   if (isGuest || !user) {
     return <GuestProfile />;
@@ -172,6 +240,13 @@ export default function ProfileScreen() {
             </View>
           )}
         </View>
+
+        {/* ── Learning progress ────────────────────────────────────────── */}
+        <LearningProgress
+          enrolledCount={enrolledCount}
+          completedCount={completedCount}
+          completionPct={completionPct}
+        />
 
         {/* ── Account section ──────────────────────────────────────────── */}
         <View style={styles.section}>
@@ -329,6 +404,13 @@ const styles = StyleSheet.create({
     color: COLORS.ERROR,
   },
 
+  // ── Separator between row items ───────────────────────────────────────────
+  separator: {
+    height: 1,
+    backgroundColor: COLORS.BORDER,
+    marginHorizontal: SPACING.MD,
+  },
+
   // ── Guest ───────────────────────────────────────────────────────────────────
   guestContainer: {
     flex: 1,
@@ -363,5 +445,63 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: SPACING.SM,
     marginTop: SPACING.SM,
+  },
+});
+
+// ─── Progress sub-styles (kept separate for clarity) ─────────────────────────
+
+const progressStyles = StyleSheet.create({
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.MD,
+    paddingHorizontal: SPACING.MD,
+  },
+  stat: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  statValue: {
+    fontFamily: FONTS.BOLD,
+    fontSize: FONT_SIZES.XL,
+    color: COLORS.TEXT_PRIMARY,
+  },
+  statLabel: {
+    fontFamily: FONTS.REGULAR,
+    fontSize: FONT_SIZES.XS,
+    color: COLORS.TEXT_SECONDARY,
+    textAlign: 'center',
+  },
+  divider: {
+    width: 1,
+    height: 32,
+    backgroundColor: COLORS.BORDER,
+  },
+  barWrap: {
+    paddingHorizontal: SPACING.MD,
+    paddingBottom: SPACING.MD,
+    gap: SPACING.XS,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.BORDER,
+    paddingTop: SPACING.MD,
+  },
+  barTrack: {
+    height: 8,
+    backgroundColor: COLORS.GRAY_100,
+    borderRadius: BORDER_RADIUS.FULL,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: BORDER_RADIUS.FULL,
+    // Width is set inline as a percentage string
+  },
+  barLabel: {
+    fontFamily: FONTS.REGULAR,
+    fontSize: FONT_SIZES.XS,
+    color: COLORS.TEXT_SECONDARY,
+    textAlign: 'center',
   },
 });

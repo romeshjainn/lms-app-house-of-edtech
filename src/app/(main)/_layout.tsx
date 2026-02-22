@@ -44,11 +44,11 @@ export default function MainLayout() {
         }}
       />
       <Tabs.Screen
-        name="my-course"
+        name="courses"
         options={{
-          title: 'My Courses',
+          title: 'Courses',
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="book-outline" color={color} size={size} />
+            <TabIcon name="library-outline" color={color} size={size} />
           ),
         }}
       />
