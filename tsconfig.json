@@ -8,5 +8,5 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "global.d.ts", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "global.d.ts", ".expo/types/**/*.ts", "expo-env.d.ts", "nativewind-env.d.ts"]
 }
