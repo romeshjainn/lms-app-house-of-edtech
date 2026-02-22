@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Course Content</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:   #2563EB;
+      --success:   #16A34A;
+      --text:      #111827;
+      --muted:     #6B7280;
+      --border:    #E5E7EB;
+      --bg:        #F9FAFB;
+      --white:     #FFFFFF;
+      --radius:    12px;
+      --accent:    #F59E0B;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      padding-bottom: 100px; 
+    }
+
+    #loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 12px;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #content { display: none; }
+
+    .hero {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      background: var(--border);
+    }
+
+    .meta {
+      padding: 20px 16px 8px;
+      background: var(--white);
+    }
+    .category-tag {
+      display: inline-block;
+      background: #DBEAFE;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .course-title {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text);
+    }
+    .price-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .price { font-size: 22px; font-weight: 700; color: var(--primary); }
+    .price-original {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .section {
+      background: var(--white);
+      margin-top: 10px;
+      padding: 16px;
+    }
+    .section-heading {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .instructor-card {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .instructor-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .instructor-name { font-weight: 600; font-size: 15px; }
+    .instructor-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .description {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .module { margin-bottom: 16px; }
+    .module-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lesson-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text);
+    }
+    .lesson-item:last-child { border-bottom: none; }
+    .lesson-icon {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #DBEAFE;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .lesson-duration { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+    .completed-banner {
+      background: #DCFCE7;
+      border: 1px solid #86EFAC;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .sticky-cta {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn-complete {
+      flex: 1;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-complete:active { opacity: 0.85; }
+    .btn-complete:disabled {
+      background: var(--success);
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading spinner shown until injectedJavaScript fires -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <span>Loading course…</span>
+  </div>
+
+  <!-- Main content (hidden until __initCourse__ is called) -->
+  <div id="content">
+
+    <!-- Hero image -->
+    <img id="hero" class="hero" src="" alt="Course thumbnail" />
+
+    <!-- Meta: category, title, price -->
+    <div class="meta">
+      <span id="category-tag" class="category-tag"></span>
+      <h1 id="course-title" class="course-title"></h1>
+      <div class="price-row">
+        <span id="price" class="price"></span>
+        <span id="price-original" class="price-original"></span>
+      </div>
+    </div>
+
+    <!-- Instructor -->
+    <div class="section">
+      <h2 class="section-heading">Your Instructor</h2>
+      <div class="instructor-card">
+        <img id="instructor-avatar" class="instructor-avatar" src="" alt="Instructor" />
+        <div>
+          <div id="instructor-name" class="instructor-name"></div>
+          <div id="instructor-meta" class="instructor-meta"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="section">
+      <h2 class="section-heading">About this course</h2>
+      <p id="description" class="description"></p>
+    </div>
+
+    <!-- Fake lesson content -->
+    <div class="section">
+      <h2 class="section-heading">Course Curriculum</h2>
+      <div id="curriculum"></div>
+    </div>
+
+    <!-- Completion state (shown after marking complete) -->
+    <div class="section" id="completion-section" style="display:none">
+      <div class="completed-banner">
+        <span>✅</span>
+        <span>You have completed this course!</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sticky CTA (always visible once content is shown) -->
+  <div class="sticky-cta" id="sticky-cta" style="display:none">
+    <button id="btn-complete" class="btn-complete" onclick="handleMarkCompleted()">
+      Mark as Completed
+    </button>
+  </div>
+
+  <script>
+    var FAKE_CURRICULUM = [
+      {
+        title: 'Module 1 – Introduction',
+        lessons: [
+          { label: 'Welcome to the course', duration: '3 min' },
+          { label: 'What you will learn', duration: '5 min' },
+          { label: 'Tools & setup', duration: '8 min' },
+        ],
+      },
+      {
+        title: 'Module 2 – Core Concepts',
+        lessons: [
+          { label: 'Foundations explained', duration: '12 min' },
+          { label: 'Hands-on exercise', duration: '18 min' },
+          { label: 'Common pitfalls', duration: '7 min' },
+        ],
+      },
+      {
+        title: 'Module 3 – Advanced Topics',
+        lessons: [
+          { label: 'Going deeper', duration: '15 min' },
+          { label: 'Real-world project', duration: '30 min' },
+          { label: 'Final quiz', duration: '10 min' },
+        ],
+      },
+    ];
+
+    var _courseId = null;
+    var _isCompleted = false;
+
+    window.__initCourse__ = function(course, isAlreadyCompleted) {
+      _courseId  = course.id;
+      _isCompleted = !!isAlreadyCompleted;
+
+      var hero = document.getElementById('hero');
+      if (course.thumbnail) { hero.src = course.thumbnail; }
+
+      document.getElementById('category-tag').textContent =
+        (course.category || '').replace(/-/g, ' ');
+      document.getElementById('course-title').textContent = course.title || '';
+
+      var price = document.getElementById('price');
+      price.textContent = '$' + (course.price || 0).toFixed(2);
+
+      if (course.discountPercentage > 0) {
+        var orig = course.price / (1 - course.discountPercentage / 100);
+        document.getElementById('price-original').textContent =
+          '$' + orig.toFixed(2);
+      }
+
+      var avatar = document.getElementById('instructor-avatar');
+      if (course.instructor && course.instructor.avatarUrl) {
+        avatar.src = course.instructor.avatarUrl;
+      }
+      document.getElementById('instructor-name').textContent =
+        (course.instructor && course.instructor.name) || 'Unknown';
+      var instructorMeta = [];
+      if (course.instructor && course.instructor.location) {
+        instructorMeta.push('📍 ' + course.instructor.location);
+      }
+      if (course.instructor && course.instructor.email) {
+        instructorMeta.push('✉️ ' + course.instructor.email);
+      }
+      document.getElementById('instructor-meta').textContent =
+        instructorMeta.join('  ·  ');
+
+        document.getElementById('description').textContent =
+        course.description || 'No description available.';
+
+        var container = document.getElementById('curriculum');
+      FAKE_CURRICULUM.forEach(function(module) {
+        var moduleEl = document.createElement('div');
+        moduleEl.className = 'module';
+
+        var titleEl = document.createElement('div');
+        titleEl.className = 'module-title';
+        titleEl.textContent = module.title;
+        moduleEl.appendChild(titleEl);
+
+        module.lessons.forEach(function(lesson) {
+          var item = document.createElement('div');
+          item.className = 'lesson-item';
+          item.innerHTML =
+            '<div class="lesson-icon">▶</div>' +
+            '<span>' + lesson.label + '</span>' +
+            '<span class="lesson-duration">' + lesson.duration + '</span>';
+          moduleEl.appendChild(item);
+        });
+
+        container.appendChild(moduleEl);
+      });
+
+      if (_isCompleted) { showCompletedState(); }
+
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+      document.getElementById('sticky-cta').style.display = 'flex';
+    };
+
+    function handleMarkCompleted() {
+      if (_isCompleted) return;
+
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(
+          JSON.stringify({ type: 'MARK_COMPLETED', courseId: _courseId })
+        );
+      }
+
+      showCompletedState();
+    }
+
+    function showCompletedState() {
+      _isCompleted = true;
+      var btn = document.getElementById('btn-complete');
+      btn.textContent = 'Completed ✓';
+      btn.disabled = true;
+      document.getElementById('completion-section').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

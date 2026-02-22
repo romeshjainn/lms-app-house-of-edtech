@@ -9,6 +9,10 @@ const STORAGE_KEYS = {
 
   ONBOARDING_COMPLETED: 'onboarding_completed',
   NOTIFICATION_ENABLED: 'notification_enabled',
+
+  BOOKMARKED_COURSES: 'bookmarked_courses',
+  ENROLLED_COURSES: 'enrolled_courses',
+  COMPLETED_COURSES: 'completed_courses',
 } as const;
 
 export default STORAGE_KEYS;

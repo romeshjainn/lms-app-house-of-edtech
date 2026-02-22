@@ -6,9 +6,13 @@ const ROUTES = {
   REGISTER: '/register',
 
   HOME: '/home',
-  MY_COURSE: '/my-course',
   PROFILE: '/profile',
   SETTINGS: '/profile/settings',
+
+  COURSES: '/courses',
 } as const;
+
+export const courseDetailRoute = (courseId: number): string =>
+  `/courses/${courseId}`;
 
 export default ROUTES;
