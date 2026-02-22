@@ -72,7 +72,7 @@ export function LoginScreen() {
     onSubmit: async (values) => {
       try {
         const response = await authService.login(values);
-        console.log(response, 'login-resoponse')
+        console.log(response, 'login-resoponse');
 
         await dispatch(
           loginSuccess({
