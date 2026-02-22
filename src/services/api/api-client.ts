@@ -6,6 +6,7 @@ import { store } from '@/store';
 import { logout } from '@/store/slices/auth.slice';
 
 export interface ApiResponse<T = unknown> {
+  statusCode: number;
   data: T;
   message: string;
   success: boolean;
@@ -28,10 +29,11 @@ const apiClient: AxiosInstance = axios.create({
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = store.getState().auth.token;
-
-    if (token) {
-      config.headers.set('Authorization', `Bearer ${token}`);
+    if (!config.headers.get('Authorization')) {
+      const token = store.getState().auth.accessToken;
+      if (token) {
+        config.headers.set('Authorization', `Bearer ${token}`);
+      }
     }
 
     return config;

@@ -3,7 +3,7 @@
     "name": "lms-app",
     "slug": "lms-app",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "lmsapp",
     "userInterfaceStyle": "light",
@@ -40,7 +40,13 @@
           "backgroundColor": "#2563EB"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos so you can set a profile picture."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

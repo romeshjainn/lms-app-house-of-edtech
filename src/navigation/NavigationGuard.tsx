@@ -5,7 +5,7 @@ import { useAppSelector } from '@/store';
 import { ROUTES } from '@/constants';
 
 const AUTHENTICATED_GROUPS = ['(main)'] as const;
-const LOGGED_OUT_ONLY_GROUPS = ['(auth)'] as const;
+const LOGGED_OUT_ONLY_GROUPS = ['(auth)', 'welcome'] as const;
 
 
 type RoutePolicy = 'authenticated-only' | 'logged-out-only' | 'public';
@@ -40,7 +40,7 @@ export function NavigationGuard({ children }: NavigationGuardProps) {
       return;
     }
 
-    if (policy === 'logged-out-only' && isAuthenticated) {
+    if (policy === 'logged-out-only' && (isAuthenticated || isGuest)) {
       router.replace(ROUTES.HOME as never);
     }
   }, [isHydrated, isAuthenticated, isGuest, segments, router]);
