@@ -19,7 +19,7 @@ import type { RootState } from './root-reducer';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['auth'],
+  blacklist: ['auth', 'course'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
