@@ -29,10 +29,10 @@ export function RegisterScreen() {
 
   const formik = useFormik<RegisterFormValues>({
     initialValues: {
-      username: 'test1',
-      email: 'test1@gmail.com',
-      password: 'Password@12',
-      confirmPassword: 'Password@12',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
       profileImageUri: null,
     },
     validationSchema: registerSchema,

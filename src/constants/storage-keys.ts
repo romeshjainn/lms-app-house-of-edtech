@@ -1,5 +1,4 @@
 const STORAGE_KEYS = {
-
   AUTH_TOKEN: 'auth_token',
   REFRESH_TOKEN: 'refresh_token',
 
@@ -13,6 +12,8 @@ const STORAGE_KEYS = {
   BOOKMARKED_COURSES: 'bookmarked_courses',
   ENROLLED_COURSES: 'enrolled_courses',
   COMPLETED_COURSES: 'completed_courses',
+
+  COURSES_CACHE_KEY: 'cached_courses',
 } as const;
 
 export default STORAGE_KEYS;

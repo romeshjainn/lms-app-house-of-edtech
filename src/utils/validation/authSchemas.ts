@@ -13,6 +13,7 @@ const usernameField = Yup.string()
   .trim()
   .min(2, 'Username must be at least 2 characters')
   .max(64, 'Username must be 64 characters or fewer')
+  .matches(/^\S+$/, 'Username cannot contain spaces')
   .required('Username is required');
 
 export const loginSchema = Yup.object({
