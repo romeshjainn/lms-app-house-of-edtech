@@ -13,7 +13,8 @@
     },
     "androidStatusBar": {
       "barStyle": "light-content",
-      "translucent": true
+      "translucent": true,
+      "backgroundColor": "#2563EB"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +24,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["android.permission.RECORD_AUDIO", "INTERNET"],
+      "package": "com.romeshjainn12.lmsapp"
     },
     "web": {
       "output": "static",
@@ -51,6 +54,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5cdb5b5e-8ede-4deb-8634-6c69e0dde178"
+      }
     }
   }
 }

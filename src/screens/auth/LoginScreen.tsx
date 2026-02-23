@@ -48,6 +48,7 @@ export function LoginScreen() {
   
   function handleGuestMode() {
     dispatch(enterGuestMode());
+    router.replace(ROUTES.HOME as never);
   }
 
   return (
@@ -173,7 +174,7 @@ export function LoginScreen() {
 
             <View className="flex-row justify-center mt-4">
               <CustomText className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-                Don't have an account?
+                {"Don't have an account?"}
               </CustomText>
               <TouchableOpacity
                 className="ml-1"

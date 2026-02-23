@@ -12,6 +12,7 @@ export const IMAGES = {
   partialReactLogo: require('./images/partial-react-logo.png'),
 
   welcome: require('./png/welcome.png'),
+  cousrePlaceholder: require('./png/course-placeholder.png'),
 } as const;
 
 export const UBUNTU_FONTS = {

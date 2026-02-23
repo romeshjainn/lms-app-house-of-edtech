@@ -1,11 +1,14 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { type ComponentProps } from 'react';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
-import { COLORS, FONTS } from '@/constants';
+import CustomText from '@/components/base/AppText';
+import { FONTS } from '@/constants';
 import { BORDER_RADIUS, FONT_SIZES, SPACING } from '@/theme';
+import { useTheme } from '@/theme/ThemeContext';
 import type { SortOption } from '@/types/course.types';
 
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 interface ChipDef {
   value: SortOption;
@@ -14,10 +17,10 @@ interface ChipDef {
 }
 
 const CHIPS: ChipDef[] = [
-  { value: 'az',         label: 'A → Z',       icon: 'text-outline' },
-  { value: 'za',         label: 'Z → A',       icon: 'text-outline' },
-  { value: 'price-asc',  label: 'Price ↑',     icon: 'arrow-up-outline' },
-  { value: 'price-desc', label: 'Price ↓',     icon: 'arrow-down-outline' },
+  { value: 'az', label: 'A → Z', icon: 'text-outline' },
+  { value: 'za', label: 'Z → A', icon: 'text-outline' },
+  { value: 'price-asc', label: 'Price ↑', icon: 'arrow-up-outline' },
+  { value: 'price-desc', label: 'Price ↓', icon: 'arrow-down-outline' },
 ];
 
 interface FilterBarProps {
@@ -26,32 +29,64 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ value, onChange }: FilterBarProps) {
+  const { colors, isDark } = useTheme();
+
   return (
-    <View style={styles.wrapper}>
+    <View
+      style={{
+        backgroundColor: colors.WHITE,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.BORDER,
+      }}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.row}
-        style={styles.scroll}
+        contentContainerStyle={{
+          flexGrow: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: SPACING.MD,
+          paddingVertical: SPACING.SM,
+          gap: SPACING.SM,
+        }}
       >
         {CHIPS.map((chip) => {
           const active = value === chip.value;
+
           return (
             <TouchableOpacity
               key={chip.value}
-              style={[styles.chip, active && styles.chipActive]}
+              activeOpacity={0.8}
               onPress={() => onChange(active ? null : chip.value)}
-              activeOpacity={0.75}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: SPACING.SM,
+                paddingVertical: 6,
+                borderRadius: BORDER_RADIUS.FULL,
+                backgroundColor: active ? colors.PRIMARY : isDark ? colors.WHITE : colors.GRAY_100,
+                borderWidth: 1,
+                borderColor: active ? colors.PRIMARY : colors.BORDER,
+              }}
             >
               <Ionicons
                 name={chip.icon}
                 size={13}
-                color={active ? COLORS.WHITE : COLORS.TEXT_SECONDARY}
-                style={styles.chipIcon}
+                color={active ? colors.WHITE : colors.TEXT_PRIMARY}
+                style={{ marginRight: 4 }}
               />
-              <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
+
+              <CustomText
+                style={{
+                  fontFamily: FONTS.MEDIUM,
+                  fontSize: FONT_SIZES.SM,
+                  color: active ? colors.WHITE : colors.TEXT_PRIMARY,
+                }}
+              >
                 {chip.label}
-              </Text>
+              </CustomText>
             </TouchableOpacity>
           );
         })}
@@ -59,46 +94,3 @@ export function FilterBar({ value, onChange }: FilterBarProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
-  },
-  scroll: {
-    flexGrow: 0,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.SM,
-    gap: SPACING.SM,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.SM,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.FULL,
-    backgroundColor: COLORS.GRAY_100,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-  },
-  chipActive: {
-    backgroundColor: COLORS.PRIMARY,
-    borderColor: COLORS.PRIMARY,
-  },
-  chipIcon: {
-    marginRight: 4,
-  },
-  chipLabel: {
-    fontFamily: FONTS.MEDIUM,
-    fontSize: FONT_SIZES.SM,
-    color: COLORS.TEXT_SECONDARY,
-  },
-  chipLabelActive: {
-    color: COLORS.WHITE,
-  },
-});

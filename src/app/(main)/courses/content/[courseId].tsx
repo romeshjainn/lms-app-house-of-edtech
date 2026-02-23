@@ -3,11 +3,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import WebView, {
-  type WebViewErrorEvent,
-  type WebViewHttpErrorEvent,
-  type WebViewMessageEvent,
-} from 'react-native-webview';
+import type { WebViewMessageEvent } from 'react-native-webview';
+import WebView from 'react-native-webview';
 
 import { COLORS, FONTS } from '@/constants';
 import { handleApiError } from '@/services/api/error-handler';
@@ -82,11 +79,11 @@ export default function CourseContentScreen() {
     } catch {}
   }
 
-  function handleWebViewError(event: WebViewErrorEvent) {
+  function handleWebViewError(event: { nativeEvent: { description: string } }) {
     setWebViewError(event.nativeEvent.description || 'An error occurred in the content view.');
   }
 
-  function handleHttpError(event: WebViewHttpErrorEvent) {
+  function handleHttpError(event: { nativeEvent: { statusCode: number } }) {
     const code = event.nativeEvent.statusCode;
     setWebViewError(`Content failed to load (HTTP ${code}). Please try again.`);
   }
@@ -128,7 +125,6 @@ export default function CourseContentScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <NavBar title={course.title} />
 
-      {/* WebView error fallback (shown instead of the WebView) */}
       {webViewError ? (
         <View style={styles.centeredState}>
           <Ionicons name="warning-outline" size={52} color={COLORS.WARNING} />
