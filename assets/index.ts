@@ -10,6 +10,8 @@ export const IMAGES = {
 
   reactLogo: require('./images/react-logo.png'),
   partialReactLogo: require('./images/partial-react-logo.png'),
+
+  welcome: require('./png/welcome.png'),
 } as const;
 
 export const UBUNTU_FONTS = {

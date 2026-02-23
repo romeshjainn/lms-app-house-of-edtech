@@ -3,20 +3,17 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   FlatList,
+  Image,
   ScrollView,
-  StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   type ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import CustomText from '@/components/base/AppText';
 import { CourseCard } from '@/components/course/CourseCard';
-import {
-  MINI_CARD_WIDTH,
-  MiniCourseCard
-} from '@/components/course/MiniCourseCard';
+import { MINI_CARD_WIDTH, MiniCourseCard } from '@/components/course/MiniCourseCard';
 import { COLORS, FONTS, ROUTES } from '@/constants';
 import { courseDetailRoute } from '@/constants/routes';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -30,7 +27,6 @@ import {
   selectIsCoursesLoading,
   selectRecommendedCourses,
 } from '@/store/slices/course.slice';
-import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
 import type { CourseListItem } from '@/types/course.types';
 
 const CONTINUE_LIMIT = 5;
@@ -45,37 +41,29 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-interface StatCardProps {
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  value: string;
-  color: string;
-}
-
-function StatCard({ icon, label, value, color }: StatCardProps) {
-  return (
-    <View style={styles.statCard}>
-      <View style={[styles.statIconWrap, { backgroundColor: color + '22' }]}>
-        <Ionicons name={icon} size={20} color={color} />
-      </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
 interface SectionHeaderProps {
   title: string;
   onSeeAll?: () => void;
+  seeAllLabel?: string;
 }
 
-function SectionHeader({ title, onSeeAll }: SectionHeaderProps) {
+function SectionHeader({ title, onSeeAll, seeAllLabel = 'See all' }: SectionHeaderProps) {
   return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+    <View className="flex-row items-center justify-between px-5 mb-3">
+      <CustomText
+        className="text-base"
+        style={{ fontFamily: FONTS.BOLD, color: COLORS.TEXT_PRIMARY }}
+      >
+        {title}
+      </CustomText>
       {onSeeAll && (
         <TouchableOpacity onPress={onSeeAll} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.seeAll}>See all</Text>
+          <CustomText
+            className="text-sm"
+            style={{ fontFamily: FONTS.MEDIUM, color: COLORS.SECONDARY }}
+          >
+            {seeAllLabel} →
+          </CustomText>
         </TouchableOpacity>
       )}
     </View>
@@ -83,68 +71,59 @@ function SectionHeader({ title, onSeeAll }: SectionHeaderProps) {
 }
 
 function MiniCardSkeleton() {
-  return <View style={skeletonStyles.card} />;
+  return (
+    <View
+      style={{
+        width: MINI_CARD_WIDTH,
+        height: 196,
+        borderRadius: 16,
+        backgroundColor: COLORS.GRAY_100,
+      }}
+    />
+  );
 }
 
 const keyExtractor = (item: CourseListItem): string => String(item.id);
 
 function HorizontalSeparator() {
-  return <View style={sharedStyles.horizontalSeparator} />;
+  return <View style={{ width: 12 }} />;
 }
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
 
   const { user, isGuest } = useAppSelector((state) => state.auth);
-  const enrolledCount = useAppSelector(selectEnrolledCount);
-  const completedCount = useAppSelector(selectCompletedCount);
-  const completionPct = useAppSelector(selectCompletionPercentage);
+  const enrolledCount    = useAppSelector(selectEnrolledCount);
+  const completedCount   = useAppSelector(selectCompletedCount);
+  const completionPct    = useAppSelector(selectCompletionPercentage);
   const isCoursesLoading = useAppSelector(selectIsCoursesLoading);
-  const activeEnrolled = useAppSelector(selectActiveEnrolledCourses);
-  const recommended = useAppSelector(selectRecommendedCourses);
-  const bookmarked = useAppSelector(selectBookmarkedCoursesData);
+  const activeEnrolled   = useAppSelector(selectActiveEnrolledCourses);
+  const recommended      = useAppSelector(selectRecommendedCourses);
+  const bookmarked       = useAppSelector(selectBookmarkedCoursesData);
 
-  const continueCourses = useMemo(() => activeEnrolled.slice(0, CONTINUE_LIMIT), [activeEnrolled]);
-  const recommendedCourses = useMemo(() => recommended.slice(0, RECOMMENDED_LIMIT), [recommended]);
-  const bookmarkedPreview = useMemo(() => bookmarked.slice(0, BOOKMARKED_LIMIT), [bookmarked]);
+  const continueCourses    = useMemo(() => activeEnrolled.slice(0, CONTINUE_LIMIT),    [activeEnrolled]);
+  const recommendedCourses = useMemo(() => recommended.slice(0, RECOMMENDED_LIMIT),    [recommended]);
+  const bookmarkedPreview  = useMemo(() => bookmarked.slice(0, BOOKMARKED_LIMIT),       [bookmarked]);
 
-  useEffect(() => {
-    dispatch(fetchAllCourses());
-  }, [dispatch]);
+  useEffect(() => { dispatch(fetchAllCourses()); }, [dispatch]);
 
-  const displayName = isGuest ? 'Guest' : (user?.username ?? '');
-  const greeting = `${getGreeting()}, ${displayName}!`;
-  const subtext = isGuest
-    ? 'Log in to track your progress and access all features.'
-    : enrolledCount > 0
-      ? `You have ${enrolledCount} course${enrolledCount !== 1 ? 's' : ''} in progress.`
-      : 'Browse the catalog and start your learning journey.';
+  const avatarSource = user?.profileImageUri || user?.avatarUrl;
+  const initial      = user?.username?.[0]?.toUpperCase() ?? '?';
 
   const handleSeeAllBookmarked = useCallback(() => {
-    router.navigate({
-      pathname: ROUTES.COURSES as never,
-      params: { section: 'bookmarked' },
-    });
+    router.navigate({ pathname: ROUTES.COURSES as never, params: { section: 'bookmarked' } });
   }, []);
 
   const renderContinueItem = useCallback(
     ({ item }: ListRenderItemInfo<CourseListItem>) => (
-      <MiniCourseCard
-        course={item}
-        onPress={() => router.push(courseDetailRoute(item.id) as never)}
-      />
-    ),
-    [],
+      <MiniCourseCard course={item} onPress={() => router.push(courseDetailRoute(item.id) as never)} />
+    ), [],
   );
 
   const renderRecommendedItem = useCallback(
     ({ item }: ListRenderItemInfo<CourseListItem>) => (
-      <MiniCourseCard
-        course={item}
-        onPress={() => router.push(courseDetailRoute(item.id) as never)}
-      />
-    ),
-    [],
+      <MiniCourseCard course={item} onPress={() => router.push(courseDetailRoute(item.id) as never)} />
+    ), [],
   );
 
   const renderBookmarkedItem = useCallback(
@@ -152,45 +131,233 @@ export default function HomeScreen() {
       <CourseCard
         course={item}
         onPress={() => router.push(courseDetailRoute(item.id) as never)}
-        style={bookmarkedStyles.card}
+        style={{ width: BOOKMARKED_CARD_WIDTH }}
       />
-    ),
-    [],
+    ), [],
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.greeting}>{greeting}</Text>
-          <Text style={styles.subtext}>{subtext}</Text>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.BACKGROUND }} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
+        <View className="px-5 pt-5 pb-6" style={{ backgroundColor: COLORS.WHITE }}>
+          <View className="flex-row items-center">
+
+            <TouchableOpacity
+              onPress={() => !isGuest && router.push(ROUTES.PROFILE as never)}
+              activeOpacity={isGuest ? 1 : 0.85}
+              style={{ marginRight: 14 }}
+            >
+              {!isGuest && avatarSource ? (
+                <Image
+                  source={{ uri: avatarSource }}
+                  style={{
+                    width: 54,
+                    height: 54,
+                    borderRadius: 27,
+                    borderWidth: 2.5,
+                    borderColor: COLORS.SECONDARY_LIGHT,
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 54,
+                    height: 54,
+                    borderRadius: 27,
+                    backgroundColor: COLORS.SECONDARY_LIGHT,
+                    borderWidth: 2.5,
+                    borderColor: COLORS.SECONDARY + '55',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <CustomText
+                    style={{ fontFamily: FONTS.BOLD, fontSize: 21, color: COLORS.SECONDARY }}
+                  >
+                    {isGuest ? '👋' : initial}
+                  </CustomText>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <View className="flex-1">
+              <CustomText
+                className="text-xs"
+                style={{ color: COLORS.TEXT_SECONDARY, letterSpacing: 0.2 }}
+              >
+                {isGuest ? 'Welcome to' : `${getGreeting()},`}
+              </CustomText>
+              <CustomText
+                style={{ fontFamily: FONTS.BOLD, fontSize: 20, color: COLORS.TEXT_PRIMARY, marginTop: 1 }}
+              >
+                {isGuest ? 'HouseOfEdTech' : `${user?.username ?? ''}!`}
+              </CustomText>
+              <CustomText
+                className="text-xs mt-0.5"
+                style={{ color: COLORS.TEXT_SECONDARY }}
+              >
+                {isGuest ? 'Explore and learn anything.' : 'Ready to continue learning?'}
+              </CustomText>
+            </View>
+
+            {!isGuest && (
+              <TouchableOpacity
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: COLORS.GRAY_100 }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="notifications-outline" size={20} color={COLORS.TEXT_PRIMARY} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {!isGuest && (
-          <View style={styles.statsRow}>
-            <StatCard
-              icon="book-outline"
-              label="Enrolled"
-              value={String(enrolledCount)}
-              color={COLORS.PRIMARY}
-            />
-            <StatCard
-              icon="checkmark-circle-outline"
-              label="Completed"
-              value={String(completedCount)}
-              color={COLORS.SUCCESS}
-            />
-            <StatCard
-              icon="stats-chart-outline"
-              label="% Done"
-              value={`${completionPct}%`}
-              color={COLORS.ACCENT}
-            />
+          <View
+            className="mx-5 mt-5 rounded-3xl p-5"
+            style={{
+              backgroundColor: COLORS.SECONDARY_LIGHT,
+              shadowColor: COLORS.SECONDARY,
+              shadowOpacity: 0.16,
+              shadowRadius: 20,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 6,
+            }}
+          >
+            <View className="flex-row items-center justify-between mb-5">
+              <CustomText
+                style={{ fontFamily: FONTS.BOLD, fontSize: 15, color: COLORS.SECONDARY_DARK }}
+              >
+                Your Learning Progress
+              </CustomText>
+              <View
+                className="px-3 py-1 rounded-full"
+                style={{ backgroundColor: COLORS.SECONDARY + '25' }}
+              >
+                <CustomText
+                  className="text-xs"
+                  style={{ fontFamily: FONTS.MEDIUM, color: COLORS.SECONDARY }}
+                >
+                  {completionPct}% done
+                </CustomText>
+              </View>
+            </View>
+
+            <View className="flex-row mb-5">
+              {([
+                { icon: 'book-outline',             label: 'Enrolled',    value: enrolledCount,                   color: COLORS.PRIMARY  },
+                { icon: 'checkmark-circle-outline', label: 'Completed',   value: completedCount,                  color: COLORS.SUCCESS  },
+                { icon: 'time-outline',             label: 'In Progress', value: enrolledCount - completedCount,  color: COLORS.ACCENT   },
+              ] as const).map((s, i) => (
+                <View key={i} className="flex-1 items-center">
+                  <View
+                    className="w-9 h-9 rounded-xl items-center justify-center mb-2"
+                    style={{ backgroundColor: s.color + '22' }}
+                  >
+                    <Ionicons name={s.icon} size={17} color={s.color} />
+                  </View>
+                  <CustomText
+                    style={{ fontFamily: FONTS.BOLD, fontSize: 19, color: COLORS.TEXT_PRIMARY }}
+                  >
+                    {s.value}
+                  </CustomText>
+                  <CustomText
+                    className="text-xs text-center mt-0.5"
+                    style={{ color: COLORS.TEXT_SECONDARY }}
+                  >
+                    {s.label}
+                  </CustomText>
+                </View>
+              ))}
+            </View>
+
+            <View>
+              <View className="flex-row justify-between mb-1.5">
+                <CustomText
+                  className="text-xs"
+                  style={{ fontFamily: FONTS.MEDIUM, color: COLORS.TEXT_SECONDARY }}
+                >
+                  Overall completion
+                </CustomText>
+                <CustomText
+                  className="text-xs"
+                  style={{ fontFamily: FONTS.BOLD, color: COLORS.SECONDARY }}
+                >
+                  {completionPct}%
+                </CustomText>
+              </View>
+              <View
+                className="w-full rounded-full overflow-hidden"
+                style={{ height: 7, backgroundColor: COLORS.SECONDARY + '2A' }}
+              >
+                <View
+                  style={{
+                    height: '100%',
+                    width: `${Math.min(completionPct, 100)}%`,
+                    backgroundColor: COLORS.SECONDARY,
+                    borderRadius: 99,
+                  }}
+                />
+              </View>
+            </View>
           </View>
         )}
 
+        {isGuest && (
+          <View
+            className="mx-5 mt-5 rounded-3xl p-6"
+            style={{
+              backgroundColor: COLORS.SECONDARY,
+              shadowColor: COLORS.SECONDARY,
+              shadowOpacity: 0.28,
+              shadowRadius: 24,
+              shadowOffset: { width: 0, height: 8 },
+              elevation: 8,
+            }}
+          >
+            <CustomText
+              style={{ fontFamily: FONTS.BOLD, fontSize: 22, color: COLORS.WHITE, lineHeight: 30 }}
+            >
+              {'Start your learning\njourney today 🚀'}
+            </CustomText>
+            <CustomText
+              className="text-sm mt-2 mb-6"
+              style={{ color: 'rgba(255,255,255,0.70)', lineHeight: 20 }}
+            >
+              Join thousands of learners worldwide. Track progress, bookmark courses and unlock your full potential.
+            </CustomText>
+            <View className="flex-row" style={{ gap: 10 }}>
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => router.push(ROUTES.REGISTER as never)}
+                className="flex-1 rounded-2xl py-3.5 items-center"
+                style={{ backgroundColor: COLORS.WHITE }}
+              >
+                <CustomText
+                  className="text-sm"
+                  style={{ fontFamily: FONTS.BOLD, color: COLORS.SECONDARY }}
+                >
+                  Sign Up
+                </CustomText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => router.push(ROUTES.LOGIN as never)}
+                className="flex-1 rounded-2xl py-3.5 items-center"
+                style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)' }}
+              >
+                <CustomText
+                  className="text-sm"
+                  style={{ fontFamily: FONTS.MEDIUM, color: COLORS.WHITE }}
+                >
+                  Login
+                </CustomText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
         {!isGuest && continueCourses.length > 0 && (
-          <View style={styles.section}>
+          <View className="mt-8">
             <SectionHeader
               title="Continue Learning"
               onSeeAll={() => router.push(ROUTES.COURSES as never)}
@@ -201,14 +368,14 @@ export default function HomeScreen() {
               renderItem={renderContinueItem}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
+              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 4 }}
               ItemSeparatorComponent={HorizontalSeparator}
             />
           </View>
         )}
 
         {bookmarkedPreview.length > 0 && (
-          <View style={styles.section}>
+          <View className="mt-8">
             <SectionHeader title="Bookmarked" onSeeAll={handleSeeAllBookmarked} />
             <FlatList
               data={bookmarkedPreview}
@@ -216,21 +383,22 @@ export default function HomeScreen() {
               renderItem={renderBookmarkedItem}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
+              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 4 }}
               ItemSeparatorComponent={HorizontalSeparator}
             />
           </View>
         )}
-        <View style={styles.section}>
-          <SectionHeader
-            title="Recommended for You"
-            onSeeAll={() => router.push(ROUTES.COURSES as never)}
-          />
 
+  
+        <View className="mt-8">
+          <SectionHeader
+            title={isGuest ? 'Recommended Courses' : 'Recommended for You'}
+            onSeeAll={() => router.push(ROUTES.COURSES as never)}
+            seeAllLabel="View all"
+          />
           {isCoursesLoading && recommendedCourses.length === 0 ? (
-            <View style={styles.horizontalList}>
+            <View className="flex-row" style={{ paddingHorizontal: 20, gap: 12 }}>
               <MiniCardSkeleton />
-              <HorizontalSeparator />
               <MiniCardSkeleton />
             </View>
           ) : recommendedCourses.length > 0 ? (
@@ -240,206 +408,65 @@ export default function HomeScreen() {
               renderItem={renderRecommendedItem}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
+              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 4 }}
               ItemSeparatorComponent={HorizontalSeparator}
             />
           ) : (
-            <View style={styles.emptySection}>
-              <Ionicons name="checkmark-done-circle-outline" size={32} color={COLORS.GRAY_300} />
-              <Text style={styles.emptyText}>
-                You&apos;re enrolled in all available courses — well done!
-              </Text>
+            <View
+              className="mx-5 flex-row items-center rounded-2xl p-4"
+              style={{ backgroundColor: COLORS.GRAY_100, gap: 12 }}
+            >
+              <Ionicons name="checkmark-done-circle-outline" size={26} color={COLORS.GRAY_400} />
+              <CustomText
+                className="flex-1 text-sm"
+                style={{ color: COLORS.TEXT_SECONDARY, lineHeight: 20 }}
+              >
+                You're enrolled in all available courses — well done!
+              </CustomText>
             </View>
           )}
         </View>
 
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.ctaCard}
-            onPress={() => router.push(ROUTES.COURSES as never)}
-            activeOpacity={0.85}
+        <TouchableOpacity
+          className="mx-5 mt-8 flex-row items-center rounded-2xl p-4"
+          style={{
+            backgroundColor: COLORS.PRIMARY,
+            gap: 14,
+            shadowColor: COLORS.PRIMARY,
+            shadowOpacity: 0.2,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 5 },
+            elevation: 5,
+          }}
+          onPress={() => router.push(ROUTES.COURSES as never)}
+          activeOpacity={0.85}
+        >
+          <View
+            className="w-11 h-11 rounded-xl items-center justify-center"
+            style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
           >
-            <View style={styles.ctaIconWrap}>
-              <Ionicons name="library-outline" size={26} color={COLORS.WHITE} />
-            </View>
-            <View style={styles.ctaTextWrap}>
-              <Text style={styles.ctaTitle}>
-                {enrolledCount > 0 ? 'Explore more courses' : 'Browse the catalog'}
-              </Text>
-              <Text style={styles.ctaSubtitle}>
-                {enrolledCount > 0
-                  ? 'Discover new topics and keep growing.'
-                  : 'Find the right course to start your journey.'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.WHITE} />
-          </TouchableOpacity>
-        </View>
+            <Ionicons name="library-outline" size={22} color={COLORS.WHITE} />
+          </View>
+          <View className="flex-1">
+            <CustomText
+              className="text-base"
+              style={{ fontFamily: FONTS.BOLD, color: COLORS.WHITE }}
+            >
+              Browse all courses
+            </CustomText>
+            <CustomText
+              className="text-xs mt-0.5"
+              style={{ color: 'rgba(255,255,255,0.68)', lineHeight: 17 }}
+            >
+              {enrolledCount > 0
+                ? 'Discover new topics and keep growing.'
+                : 'Find the right course to start your journey.'}
+            </CustomText>
+          </View>
+          <Ionicons name="arrow-forward" size={18} color="rgba(255,255,255,0.8)" />
+        </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
-  },
-  scroll: {
-    paddingBottom: SPACING.XXL,
-  },
-
-  header: {
-    paddingHorizontal: SPACING.LG,
-    paddingTop: SPACING.LG,
-    paddingBottom: SPACING.MD,
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
-    gap: SPACING.XS,
-  },
-  greeting: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.XL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  subtext: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.SM,
-    color: COLORS.TEXT_SECONDARY,
-  },
-
-  statsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.LG,
-    paddingTop: SPACING.LG,
-    gap: SPACING.SM,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: COLORS.WHITE,
-    borderRadius: BORDER_RADIUS.LG,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-    padding: SPACING.MD,
-    alignItems: 'center',
-    gap: SPACING.XS,
-    ...SHADOWS.SM,
-  },
-  statIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.MD,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statValue: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.XL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  statLabel: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.XS,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
-  },
-
-  section: {
-    marginTop: SPACING.LG,
-    gap: SPACING.SM,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.LG,
-  },
-  sectionTitle: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.BASE,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  seeAll: {
-    fontFamily: FONTS.MEDIUM,
-    fontSize: FONT_SIZES.SM,
-    color: COLORS.PRIMARY,
-  },
-  horizontalList: {
-    paddingHorizontal: SPACING.LG,
-    paddingBottom: SPACING.XS,
-  },
-
-  emptySection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: SPACING.LG,
-    gap: SPACING.SM,
-    padding: SPACING.MD,
-    backgroundColor: COLORS.GRAY_100,
-    borderRadius: BORDER_RADIUS.MD,
-  },
-  emptyText: {
-    flex: 1,
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.SM,
-    color: COLORS.TEXT_SECONDARY,
-    lineHeight: FONT_SIZES.SM * 1.5,
-  },
-
-  ctaCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: SPACING.LG,
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: BORDER_RADIUS.LG,
-    padding: SPACING.MD,
-    gap: SPACING.MD,
-    ...SHADOWS.MD,
-  },
-  ctaIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: BORDER_RADIUS.MD,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaTextWrap: {
-    flex: 1,
-    gap: 2,
-  },
-  ctaTitle: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.BASE,
-    color: COLORS.WHITE,
-  },
-  ctaSubtitle: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.XS,
-    color: 'rgba(255,255,255,0.75)',
-    lineHeight: FONT_SIZES.XS * 1.5,
-  },
-});
-
-const sharedStyles = StyleSheet.create({
-  horizontalSeparator: {
-    width: SPACING.MD,
-  },
-});
-
-const bookmarkedStyles = StyleSheet.create({
-  card: {
-    width: BOOKMARKED_CARD_WIDTH,
-  },
-});
-
-const skeletonStyles = StyleSheet.create({
-  card: {
-    width: MINI_CARD_WIDTH,
-    backgroundColor: COLORS.GRAY_100,
-    borderRadius: BORDER_RADIUS.LG,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-  },
-});

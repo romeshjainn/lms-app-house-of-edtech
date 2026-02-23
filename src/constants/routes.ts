@@ -8,6 +8,8 @@ const ROUTES = {
   HOME: '/home',
   PROFILE: '/profile',
   SETTINGS: '/profile/settings',
+  MY_COURSES: '/profile/my-courses',
+  BOOKMARKS: '/profile/bookmarks',
 
   COURSES: '/courses',
 } as const;

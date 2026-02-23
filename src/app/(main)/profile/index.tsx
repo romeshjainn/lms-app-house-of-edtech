@@ -1,507 +1,537 @@
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Alert, Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { COLORS, FONTS, ROUTES } from '@/constants';
-import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
+import CustomText from '@/components/base/AppText';
+import { FONTS, ROUTES } from '@/constants';
+import { authService } from '@/services/api/modules/auth.service';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { logout } from '@/store/slices/auth.slice';
+import { logout, mergeProfileImage } from '@/store/slices/auth.slice';
 import {
-  selectEnrolledCount,
   selectCompletedCount,
   selectCompletionPercentage,
+  selectEnrolledCount,
 } from '@/store/slices/course.slice';
-import { authService } from '@/services/api/modules/auth.service';
+import { useTheme } from '@/theme/ThemeContext';
 import { showToast } from '@/utils/toast';
-import { AppButton } from '@/components/common/AppButton';
 
-// ─── Avatar ───────────────────────────────────────────────────────────────────
-
-const AVATAR_SIZE = 100;
-
-interface AvatarProps {
-  profileImageUri: string | null;
-  avatarUrl: string | null;
-  username: string;
+interface MenuRowProps {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  sublabel?: string;
+  onPress: () => void;
+  iconBg?: string;
+  iconColor?: string;
+  danger?: boolean;
+  last?: boolean;
 }
 
-function Avatar({ profileImageUri, avatarUrl, username }: AvatarProps) {
-  const uri = profileImageUri ?? (avatarUrl || null);
+function MenuRow({
+  icon,
+  label,
+  sublabel,
+  onPress,
+  iconBg,
+  iconColor,
+  danger = false,
+  last = false,
+}: MenuRowProps) {
+  const { colors } = useTheme();
+  const bg = iconBg ?? colors.SECONDARY_LIGHT;
+  const ic = iconColor ?? colors.SECONDARY;
 
-  if (uri) {
-    return <Image source={{ uri }} style={styles.avatar} />;
-  }
+  return (
+    <>
+      <TouchableOpacity
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          paddingVertical: 16,
+        }}
+        onPress={onPress}
+        activeOpacity={0.65}
+      >
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 14,
+            backgroundColor: danger ? colors.ERROR_LIGHT : bg,
+          }}
+        >
+          <Ionicons name={icon} size={18} color={danger ? colors.ERROR : ic} />
+        </View>
 
-  // Initials fallback
-  const initials = username
+        <View style={{ flex: 1 }}>
+          <CustomText
+            style={{
+              fontFamily: FONTS.MEDIUM,
+              fontSize: 14,
+              color: danger ? colors.ERROR : colors.TEXT_PRIMARY,
+            }}
+          >
+            {label}
+          </CustomText>
+          {sublabel && (
+            <CustomText style={{ fontSize: 12, marginTop: 2, color: colors.TEXT_SECONDARY }}>
+              {sublabel}
+            </CustomText>
+          )}
+        </View>
+
+        {!danger && <Ionicons name="chevron-forward" size={15} color={colors.GRAY_300} />}
+      </TouchableOpacity>
+
+      {!last && (
+        <View
+          style={{ height: 1, marginLeft: 62, marginRight: 16, backgroundColor: colors.BORDER }}
+        />
+      )}
+    </>
+  );
+}
+
+function SectionLabel({ title }: { title: string }) {
+  const { colors } = useTheme();
+  return (
+    <CustomText
+      style={{
+        fontFamily: FONTS.MEDIUM,
+        fontSize: 11,
+        paddingHorizontal: 4,
+        marginBottom: 10,
+        color: colors.TEXT_SECONDARY,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+      }}
+    >
+      {title}
+    </CustomText>
+  );
+}
+
+function StatItem({
+  label,
+  value,
+  color,
+  showDivider,
+}: {
+  label: string;
+  value: string | number;
+  color: string;
+  showDivider: boolean;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flex: 1, alignItems: 'center', gap: 4 }}>
+      <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 24, color }}>{value}</CustomText>
+      <CustomText style={{ fontSize: 12, color: colors.TEXT_SECONDARY }}>{label}</CustomText>
+      {showDivider && (
+        <View
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 6,
+            bottom: 6,
+            width: 1,
+            backgroundColor: colors.BORDER,
+          }}
+        />
+      )}
+    </View>
+  );
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={{
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: colors.WHITE,
+        borderWidth: 1,
+        borderColor: colors.BORDER,
+        shadowColor: '#000',
+        shadowOpacity: 0.06,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+function GuestProfile() {
+  const { colors } = useTheme();
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.BACKGROUND }}>
+      <StatusBar style="auto" />
+      <View
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}
+      >
+        <View
+          style={{
+            width: 112,
+            height: 112,
+            borderRadius: 56,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+            backgroundColor: colors.SECONDARY_LIGHT,
+          }}
+        >
+          <Ionicons name="person-outline" size={52} color={colors.SECONDARY} />
+        </View>
+
+        <CustomText
+          style={{
+            fontFamily: FONTS.BOLD,
+            fontSize: 24,
+            color: colors.TEXT_PRIMARY,
+            textAlign: 'center',
+            marginBottom: 8,
+          }}
+        >
+          Browsing as Guest
+        </CustomText>
+        <CustomText
+          style={{
+            fontSize: 14,
+            color: colors.TEXT_SECONDARY,
+            lineHeight: 22,
+            textAlign: 'center',
+            marginBottom: 32,
+          }}
+        >
+          Create an account or log in to access your profile, track your progress, and save your
+          courses.
+        </CustomText>
+
+        <View style={{ width: '100%', gap: 10 }}>
+          <TouchableOpacity
+            style={{
+              borderRadius: 16,
+              paddingVertical: 16,
+              alignItems: 'center',
+              backgroundColor: colors.SECONDARY,
+            }}
+            onPress={() => router.push(ROUTES.LOGIN as never)}
+            activeOpacity={0.85}
+          >
+            <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 16, color: '#FFFFFF' }}>
+              Login
+            </CustomText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              borderRadius: 16,
+              paddingVertical: 16,
+              alignItems: 'center',
+              borderWidth: 1.5,
+              borderColor: colors.SECONDARY,
+            }}
+            onPress={() => router.push(ROUTES.REGISTER as never)}
+            activeOpacity={0.85}
+          >
+            <CustomText style={{ fontFamily: FONTS.MEDIUM, fontSize: 16, color: colors.SECONDARY }}>
+              Create Account
+            </CustomText>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+export default function ProfileScreen() {
+  const { colors } = useTheme();
+  const dispatch = useAppDispatch();
+  const { user, isGuest } = useAppSelector((state) => state.auth);
+  const enrolledCount = useAppSelector(selectEnrolledCount);
+  const completedCount = useAppSelector(selectCompletedCount);
+  const completionPct = useAppSelector(selectCompletionPercentage);
+
+  if (isGuest || !user) return <GuestProfile />;
+
+  const avatarSource = user.profileImageUri || user.avatarUrl;
+  const initials = user.username
     .split(' ')
     .map((w) => w[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);
 
-  return (
-    <View style={styles.avatarFallback}>
-      <Text style={styles.avatarInitials}>{initials}</Text>
-    </View>
-  );
-}
+  const roleBadgeColor =
+    user.role === 'ADMIN'
+      ? colors.ERROR
+      : user.role === 'instructor'
+        ? colors.ACCENT
+        : colors.SUCCESS;
 
-// ─── Row Item ────────────────────────────────────────────────────────────────
-
-interface RowItemProps {
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  onPress: () => void;
-  danger?: boolean;
-}
-
-function RowItem({ icon, label, onPress, danger = false }: RowItemProps) {
-  return (
-    <TouchableOpacity style={styles.rowItem} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.rowIconWrap, danger && styles.rowIconWrapDanger]}>
-        <Ionicons
-          name={icon}
-          size={18}
-          color={danger ? COLORS.ERROR : COLORS.SECONDARY}
-        />
-      </View>
-      <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>{label}</Text>
-      {!danger && (
-        <Ionicons name="chevron-forward" size={16} color={COLORS.GRAY_400} />
-      )}
-    </TouchableOpacity>
-  );
-}
-
-// ─── Learning Progress ────────────────────────────────────────────────────────
-
-interface LearningProgressProps {
-  enrolledCount: number;
-  completedCount: number;
-  completionPct: number;
-}
-
-function LearningProgress({
-  enrolledCount,
-  completedCount,
-  completionPct,
-}: LearningProgressProps) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Learning Progress</Text>
-      <View style={styles.card}>
-        {/* ── Stat row ──────────────────────────────────────────────── */}
-        <View style={progressStyles.statRow}>
-          <View style={progressStyles.stat}>
-            <Text style={progressStyles.statValue}>{enrolledCount}</Text>
-            <Text style={progressStyles.statLabel}>Enrolled</Text>
-          </View>
-          <View style={progressStyles.divider} />
-          <View style={progressStyles.stat}>
-            <Text style={progressStyles.statValue}>{completedCount}</Text>
-            <Text style={progressStyles.statLabel}>Completed</Text>
-          </View>
-          <View style={progressStyles.divider} />
-          <View style={progressStyles.stat}>
-            <Text style={[progressStyles.statValue, { color: COLORS.PRIMARY }]}>
-              {completionPct}%
-            </Text>
-            <Text style={progressStyles.statLabel}>Progress</Text>
-          </View>
-        </View>
-
-        {/* ── Progress bar ──────────────────────────────────────────── */}
-        <View style={progressStyles.barWrap}>
-          <View style={progressStyles.barTrack}>
-            <View
-              style={[
-                progressStyles.barFill,
-                { width: `${completionPct}%` },
-              ]}
-            />
-          </View>
-          <Text style={progressStyles.barLabel}>
-            {enrolledCount === 0
-              ? 'Enroll in a course to start tracking progress'
-              : completionPct === 100
-                ? 'All enrolled courses completed!'
-                : `${completedCount} of ${enrolledCount} course${enrolledCount !== 1 ? 's' : ''} completed`}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// ─── Guest view ───────────────────────────────────────────────────────────────
-
-function GuestProfile() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.guestContainer}>
-        <View style={styles.guestIconWrap}>
-          <Ionicons name="person-outline" size={56} color={COLORS.GRAY_300} />
-        </View>
-        <Text style={styles.guestTitle}>Browsing as Guest</Text>
-        <Text style={styles.guestSubtitle}>
-          Create an account or log in to access your profile, track progress, and
-          save your courses.
-        </Text>
-        <View style={styles.guestActions}>
-          <AppButton
-            label="Login"
-            variant="secondary"
-            onPress={() => router.push(ROUTES.LOGIN as never)}
-          />
-          <AppButton
-            label="Create Account"
-            variant="outline"
-            onPress={() => router.push(ROUTES.REGISTER as never)}
-          />
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
-
-export default function ProfileScreen() {
-  const dispatch = useAppDispatch();
-  const { user, isGuest } = useAppSelector((state) => state.auth);
-  const enrolledCount  = useAppSelector(selectEnrolledCount);
-  const completedCount = useAppSelector(selectCompletedCount);
-  const completionPct  = useAppSelector(selectCompletionPercentage);
-
-  if (isGuest || !user) {
-    return <GuestProfile />;
+  async function handlePickImage() {
+    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!granted) {
+      Alert.alert(
+        'Permission required',
+        'Allow access to your photo library to change your profile picture.',
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      await dispatch(mergeProfileImage(result.assets[0].uri));
+      showToast.success('Profile photo updated.');
+    }
   }
 
   function confirmLogout() {
-    Alert.alert(
-      'Log out',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Log out', style: 'destructive', onPress: handleLogout },
-      ],
-    );
+    Alert.alert('Log out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Log out', style: 'destructive', onPress: handleLogout },
+    ]);
   }
 
   async function handleLogout() {
     try {
-      // Best-effort server-side session invalidation
       await authService.logoutSession();
     } catch {
-      // Ignore — we always clear local state regardless
+      // ignore — clear local state regardless
     }
-
     await dispatch(logout());
     showToast.success('You have been logged out.', 'Goodbye!');
-    // NavigationGuard redirects to login automatically
   }
 
-  const roleBadgeColor =
-    user.role === 'ADMIN'
-      ? COLORS.ERROR
-      : user.role === 'instructor'
-        ? COLORS.ACCENT
-        : COLORS.SUCCESS;
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.BACKGROUND }} edges={['top']}>
+      <StatusBar style="auto" />
+
       <ScrollView
-        contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 56 }}
       >
-        {/* ── Header ──────────────────────────────────────────────────── */}
-        <View style={styles.header}>
-          <Avatar
-            profileImageUri={user.profileImageUri}
-            avatarUrl={user.avatarUrl}
-            username={user.username}
-          />
+        {/* ── Header ───────────────────────────────────────────────────── */}
+        <View
+          style={{
+            alignItems: 'center',
+            paddingTop: 40,
+            paddingBottom: 32,
+            paddingHorizontal: 20,
+            backgroundColor: colors.WHITE,
+          }}
+        >
+          <TouchableOpacity
+            onPress={handlePickImage}
+            activeOpacity={0.88}
+            style={{ marginBottom: 18 }}
+          >
+            {avatarSource ? (
+              <Image
+                source={{ uri: avatarSource }}
+                style={{
+                  width: 108,
+                  height: 108,
+                  borderRadius: 54,
+                  borderWidth: 3.5,
+                  borderColor: colors.SECONDARY_LIGHT,
+                }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 108,
+                  height: 108,
+                  borderRadius: 54,
+                  backgroundColor: colors.SECONDARY,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 36, color: '#FFFFFF' }}>
+                  {initials}
+                </CustomText>
+              </View>
+            )}
 
-          <Text style={styles.username}>{user.username}</Text>
-          <Text style={styles.email}>{user.email}</Text>
-
-          <View style={[styles.roleBadge, { backgroundColor: roleBadgeColor + '22' }]}>
-            <Text style={[styles.roleText, { color: roleBadgeColor }]}>
-              {user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()}
-            </Text>
-          </View>
-
-          {user.isEmailVerified && (
-            <View style={styles.verifiedRow}>
-              <Ionicons name="checkmark-circle" size={14} color={COLORS.SUCCESS} />
-              <Text style={styles.verifiedText}>Email verified</Text>
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 2,
+                right: 2,
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors.SECONDARY,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2.5,
+                borderColor: colors.WHITE,
+              }}
+            >
+              <Ionicons name="camera" size={14} color="#FFFFFF" />
             </View>
-          )}
+          </TouchableOpacity>
+
+          <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 22, color: colors.TEXT_PRIMARY }}>
+            {user.username}
+          </CustomText>
+          <CustomText style={{ color: colors.TEXT_SECONDARY, fontSize: 13, marginTop: 4 }}>
+            {user.email}
+          </CustomText>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 8 }}>
+            <View
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 4,
+                borderRadius: 99,
+                backgroundColor: roleBadgeColor + '1A',
+              }}
+            >
+              <CustomText
+                style={{
+                  fontFamily: FONTS.MEDIUM,
+                  fontSize: 12,
+                  color: roleBadgeColor,
+                  letterSpacing: 0.5,
+                }}
+              >
+                {user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()}
+              </CustomText>
+            </View>
+
+            {user.isEmailVerified && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="checkmark-circle" size={14} color={colors.SUCCESS} />
+                <CustomText style={{ fontSize: 12, color: colors.SUCCESS }}>Verified</CustomText>
+              </View>
+            )}
+          </View>
         </View>
 
-        {/* ── Learning progress ────────────────────────────────────────── */}
-        <LearningProgress
-          enrolledCount={enrolledCount}
-          completedCount={completedCount}
-          completionPct={completionPct}
-        />
+        {/* ── Progress Card ─────────────────────────────────────────────── */}
+        <View style={{ marginHorizontal: 20, marginTop: 24 }}>
+          <SectionLabel title="Your Learning" />
+          <Card>
+            <View style={{ flexDirection: 'row', paddingVertical: 20, paddingHorizontal: 16 }}>
+              <StatItem label="Enrolled" value={enrolledCount} color={colors.PRIMARY} showDivider />
+              <StatItem
+                label="Completed"
+                value={completedCount}
+                color={colors.SUCCESS}
+                showDivider
+              />
+              <StatItem
+                label="Progress"
+                value={`${completionPct}%`}
+                color={colors.SECONDARY}
+                showDivider={false}
+              />
+            </View>
 
-        {/* ── Account section ──────────────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          <View style={styles.card}>
-            <RowItem
+            <View
+              style={{
+                paddingHorizontal: 20,
+                paddingBottom: 20,
+                borderTopWidth: 1,
+                borderTopColor: colors.BORDER,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginTop: 16,
+                  marginBottom: 8,
+                }}
+              >
+                <CustomText style={{ fontSize: 12, color: colors.TEXT_SECONDARY }}>
+                  {enrolledCount === 0
+                    ? 'Enrol in a course to start tracking'
+                    : completionPct === 100
+                      ? 'All courses completed!'
+                      : `${completedCount} of ${enrolledCount} completed`}
+                </CustomText>
+                <CustomText
+                  style={{ fontFamily: FONTS.BOLD, fontSize: 12, color: colors.SECONDARY }}
+                >
+                  {completionPct}%
+                </CustomText>
+              </View>
+              <View
+                style={{
+                  width: '100%',
+                  borderRadius: 99,
+                  overflow: 'hidden',
+                  height: 7,
+                  backgroundColor: colors.GRAY_100,
+                }}
+              >
+                <View
+                  style={{
+                    height: '100%',
+                    width: `${Math.min(completionPct, 100)}%`,
+                    backgroundColor: colors.SECONDARY,
+                    borderRadius: 99,
+                  }}
+                />
+              </View>
+            </View>
+          </Card>
+        </View>
+
+        {/* ── Account Options ───────────────────────────────────────────── */}
+        <View style={{ marginHorizontal: 20, marginTop: 28 }}>
+          <SectionLabel title="Account" />
+          <Card>
+            <MenuRow
+              icon="book-outline"
+              label="My Courses"
+              sublabel="View enrolled courses"
+              onPress={() => router.push(ROUTES.MY_COURSES as never)}
+              iconBg={colors.PRIMARY + '18'}
+              iconColor={colors.PRIMARY}
+            />
+            <MenuRow
+              icon="bookmark-outline"
+              label="Bookmarks"
+              sublabel="Saved for later"
+              onPress={() => router.push(ROUTES.BOOKMARKS as never)}
+              iconBg={colors.ACCENT + '18'}
+              iconColor={colors.ACCENT}
+            />
+            <MenuRow
               icon="settings-outline"
               label="Settings"
+              sublabel="App preferences"
               onPress={() => router.push(ROUTES.SETTINGS as never)}
+              last
             />
-          </View>
+          </Card>
         </View>
 
-        {/* ── Danger zone ──────────────────────────────────────────────── */}
-        <View style={styles.section}>
-          <View style={styles.card}>
-            <RowItem
-              icon="log-out-outline"
-              label="Log out"
-              onPress={confirmLogout}
-              danger
-            />
-          </View>
+        {/* ── Danger Zone ───────────────────────────────────────────────── */}
+        <View style={{ marginHorizontal: 20, marginTop: 20 }}>
+          <Card>
+            <MenuRow icon="log-out-outline" label="Log out" onPress={confirmLogout} danger last />
+          </Card>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
-  },
-  scroll: {
-    paddingBottom: SPACING.XXL,
-  },
-
-  // ── Header ──────────────────────────────────────────────────────────────────
-  header: {
-    alignItems: 'center',
-    paddingTop: SPACING.XL,
-    paddingBottom: SPACING.LG,
-    paddingHorizontal: SPACING.LG,
-    backgroundColor: COLORS.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
-    gap: SPACING.XS,
-  },
-  avatar: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    borderWidth: 3,
-    borderColor: COLORS.SECONDARY_LIGHT,
-    marginBottom: SPACING.SM,
-  },
-  avatarFallback: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: COLORS.SECONDARY,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.SM,
-  },
-  avatarInitials: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.XXL,
-    color: COLORS.WHITE,
-  },
-  username: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.XL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  email: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.SM,
-    color: COLORS.TEXT_SECONDARY,
-  },
-  roleBadge: {
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.XS / 2,
-    borderRadius: BORDER_RADIUS.FULL,
-    marginTop: SPACING.XS,
-  },
-  roleText: {
-    fontFamily: FONTS.MEDIUM,
-    fontSize: FONT_SIZES.XS,
-    letterSpacing: 0.5,
-  },
-  verifiedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: SPACING.XS,
-  },
-  verifiedText: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.XS,
-    color: COLORS.SUCCESS,
-  },
-
-  // ── Sections ────────────────────────────────────────────────────────────────
-  section: {
-    marginTop: SPACING.LG,
-    paddingHorizontal: SPACING.LG,
-    gap: SPACING.SM,
-  },
-  sectionTitle: {
-    fontFamily: FONTS.MEDIUM,
-    fontSize: FONT_SIZES.XS,
-    color: COLORS.TEXT_SECONDARY,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  card: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: BORDER_RADIUS.LG,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-    overflow: 'hidden',
-    ...SHADOWS.SM,
-  },
-
-  // ── Row items ────────────────────────────────────────────────────────────────
-  rowItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.MD,
-    gap: SPACING.MD,
-  },
-  rowIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: BORDER_RADIUS.SM,
-    backgroundColor: COLORS.SECONDARY_LIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowIconWrapDanger: {
-    backgroundColor: COLORS.ERROR_LIGHT,
-  },
-  rowLabel: {
-    flex: 1,
-    fontFamily: FONTS.MEDIUM,
-    fontSize: FONT_SIZES.BASE,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  rowLabelDanger: {
-    color: COLORS.ERROR,
-  },
-
-  // ── Separator between row items ───────────────────────────────────────────
-  separator: {
-    height: 1,
-    backgroundColor: COLORS.BORDER,
-    marginHorizontal: SPACING.MD,
-  },
-
-  // ── Guest ───────────────────────────────────────────────────────────────────
-  guestContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING.XL,
-    gap: SPACING.MD,
-  },
-  guestIconWrap: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.GRAY_100,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.SM,
-  },
-  guestTitle: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.XL,
-    color: COLORS.TEXT_PRIMARY,
-    textAlign: 'center',
-  },
-  guestSubtitle: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.SM,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
-    lineHeight: FONT_SIZES.SM * 1.6,
-  },
-  guestActions: {
-    width: '100%',
-    gap: SPACING.SM,
-    marginTop: SPACING.SM,
-  },
-});
-
-// ─── Progress sub-styles (kept separate for clarity) ─────────────────────────
-
-const progressStyles = StyleSheet.create({
-  statRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.MD,
-    paddingHorizontal: SPACING.MD,
-  },
-  stat: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  statValue: {
-    fontFamily: FONTS.BOLD,
-    fontSize: FONT_SIZES.XL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  statLabel: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.XS,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
-  },
-  divider: {
-    width: 1,
-    height: 32,
-    backgroundColor: COLORS.BORDER,
-  },
-  barWrap: {
-    paddingHorizontal: SPACING.MD,
-    paddingBottom: SPACING.MD,
-    gap: SPACING.XS,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.BORDER,
-    paddingTop: SPACING.MD,
-  },
-  barTrack: {
-    height: 8,
-    backgroundColor: COLORS.GRAY_100,
-    borderRadius: BORDER_RADIUS.FULL,
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: BORDER_RADIUS.FULL,
-    // Width is set inline as a percentage string
-  },
-  barLabel: {
-    fontFamily: FONTS.REGULAR,
-    fontSize: FONT_SIZES.XS,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
-  },
-});
