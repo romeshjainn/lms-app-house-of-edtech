@@ -112,15 +112,14 @@ export interface CourseDetail extends CourseListItem {
   discountPercentage: number;
 }
 
-
 export interface CourseStoreState {
-
   bookmarkedIds: number[];
   enrolledIds: number[];
   completedCourseIds: number[];
   allCourses: CourseListItem[];
   isCoursesLoading: boolean;
   isHydrated: boolean;
+  isCoursesError: boolean;
 }
 
 export interface ListQueryParams {

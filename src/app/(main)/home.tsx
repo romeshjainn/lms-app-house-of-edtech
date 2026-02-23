@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -25,6 +25,7 @@ import {
   selectCompletedCount,
   selectCompletionPercentage,
   selectEnrolledCount,
+  selectIsCoursesError,
   selectIsCoursesLoading,
   selectRecommendedCourses,
 } from '@/store/slices/course.slice';
@@ -107,6 +108,7 @@ export default function HomeScreen() {
   const completedCount = useAppSelector(selectCompletedCount);
   const completionPct = useAppSelector(selectCompletionPercentage);
   const isCoursesLoading = useAppSelector(selectIsCoursesLoading);
+  const isCoursesError = useAppSelector(selectIsCoursesError);
   const activeEnrolled = useAppSelector(selectActiveEnrolledCourses);
   const recommended = useAppSelector(selectRecommendedCourses);
   const bookmarked = useAppSelector(selectBookmarkedCoursesData);
@@ -114,6 +116,8 @@ export default function HomeScreen() {
   const continueCourses = useMemo(() => activeEnrolled.slice(0, CONTINUE_LIMIT), [activeEnrolled]);
   const recommendedCourses = useMemo(() => recommended.slice(0, RECOMMENDED_LIMIT), [recommended]);
   const bookmarkedPreview = useMemo(() => bookmarked.slice(0, BOOKMARKED_LIMIT), [bookmarked]);
+
+  const [imageError, setImageError] = useState(false);
 
   function handleDarkMode(value: boolean): void {
     dispatch(setDarkMode(value));
@@ -181,9 +185,10 @@ export default function HomeScreen() {
               activeOpacity={isGuest ? 1 : 0.85}
               style={{ marginRight: 14 }}
             >
-              {!isGuest && avatarSource ? (
+              {!isGuest && avatarSource && !imageError ? (
                 <Image
                   source={{ uri: avatarSource }}
+                  onError={() => setImageError(true)}
                   style={{
                     width: 54,
                     height: 54,
@@ -336,7 +341,7 @@ export default function HomeScreen() {
                   {
                     icon: 'time-outline',
                     label: 'In Progress',
-                    value: enrolledCount - completedCount,
+                    value: Math.max(0, enrolledCount - completedCount),
                     color: colors.ACCENT,
                   },
                 ] as const
@@ -520,22 +525,38 @@ export default function HomeScreen() {
             onSeeAll={() => router.push(ROUTES.COURSES as never)}
             seeAllLabel="View all"
           />
+
           {isCoursesLoading && recommendedCourses.length === 0 ? (
             <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 12 }}>
               <MiniCardSkeleton />
               <MiniCardSkeleton />
             </View>
-          ) : recommendedCourses.length > 0 ? (
-            <FlatList
-              data={recommendedCourses}
-              keyExtractor={keyExtractor}
-              renderItem={renderRecommendedItem}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 4 }}
-              ItemSeparatorComponent={HorizontalSeparator}
-            />
-          ) : (
+          ) : isCoursesError ? (
+            <View
+              style={{
+                marginHorizontal: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderRadius: 16,
+                padding: 16,
+                paddingVertical: 80,
+                backgroundColor: colors.GRAY_100,
+                gap: 12,
+              }}
+            >
+              <Ionicons name="alert-circle-outline" size={26} color={colors.ERROR || '#EF4444'} />
+              <CustomText
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  color: colors.TEXT_SECONDARY,
+                  lineHeight: 20,
+                }}
+              >
+                Failed to load courses. Please try again.
+              </CustomText>
+            </View>
+          ) : recommendedCourses.length === 0 ? (
             <View
               style={{
                 marginHorizontal: 20,
@@ -549,64 +570,84 @@ export default function HomeScreen() {
             >
               <Ionicons name="checkmark-done-circle-outline" size={26} color={colors.GRAY_400} />
               <CustomText
-                style={{ flex: 1, fontSize: 14, color: colors.TEXT_SECONDARY, lineHeight: 20 }}
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  color: colors.TEXT_SECONDARY,
+                  lineHeight: 20,
+                }}
               >
-                {/* {"You're enrolled in all available courses — well done!"} */}
+                You're enrolled in all available courses — well done!
               </CustomText>
             </View>
+          ) : (
+            <FlatList
+              data={recommendedCourses}
+              keyExtractor={keyExtractor}
+              renderItem={renderRecommendedItem}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingBottom: 4,
+              }}
+              ItemSeparatorComponent={HorizontalSeparator}
+            />
           )}
         </View>
 
-        <TouchableOpacity
-          style={{
-            marginHorizontal: 20,
-            marginTop: 32,
-            flexDirection: 'row',
-            alignItems: 'center',
-            borderRadius: 16,
-            padding: 16,
-            gap: 14,
-            backgroundColor: colors.SECONDARY,
-            shadowColor: colors.SECONDARY,
-            shadowOpacity: 0.2,
-            shadowRadius: 16,
-            shadowOffset: { width: 0, height: 5 },
-            elevation: 5,
-          }}
-          onPress={() => router.push(ROUTES.COURSES as never)}
-          activeOpacity={0.85}
-        >
-          <View
+        {!isCoursesError && (
+          <TouchableOpacity
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
+              marginHorizontal: 20,
+              marginTop: 32,
+              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.18)',
+              borderRadius: 16,
+              padding: 16,
+              gap: 14,
+              backgroundColor: colors.SECONDARY,
+              shadowColor: colors.SECONDARY,
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 5 },
+              elevation: 5,
             }}
+            onPress={() => router.push(ROUTES.COURSES as never)}
+            activeOpacity={0.85}
           >
-            <Ionicons name="library-outline" size={22} color="#FFFFFF" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 16, color: '#FFFFFF' }}>
-              Browse all courses
-            </CustomText>
-            <CustomText
+            <View
               style={{
-                fontSize: 12,
-                marginTop: 2,
-                color: 'rgba(255,255,255,0.68)',
-                lineHeight: 17,
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255,255,255,0.18)',
               }}
             >
-              {enrolledCount > 0
-                ? 'Discover new topics and keep growing.'
-                : 'Find the right course to start your journey.'}
-            </CustomText>
-          </View>
-          <Ionicons name="arrow-forward" size={18} color="rgba(255,255,255,0.8)" />
-        </TouchableOpacity>
+              <Ionicons name="library-outline" size={22} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 16, color: '#FFFFFF' }}>
+                Browse all courses
+              </CustomText>
+              <CustomText
+                style={{
+                  fontSize: 12,
+                  marginTop: 2,
+                  color: 'rgba(255,255,255,0.68)',
+                  lineHeight: 17,
+                }}
+              >
+                {enrolledCount > 0
+                  ? 'Discover new topics and keep growing.'
+                  : 'Find the right course to start your journey.'}
+              </CustomText>
+            </View>
+            <Ionicons name="arrow-forward" size={18} color="rgba(255,255,255,0.8)" />
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
