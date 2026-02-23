@@ -40,7 +40,7 @@ export function NavigationGuard({ children }: NavigationGuardProps) {
       return;
     }
 
-    if (policy === 'logged-out-only' && (isAuthenticated || isGuest)) {
+    if (policy === 'logged-out-only' && isAuthenticated) {
       router.replace(ROUTES.HOME as never);
     }
   }, [isHydrated, isAuthenticated, isGuest, segments, router]);

@@ -1,3 +1,5 @@
+import { router } from 'expo-router';
+import { useFormik } from 'formik';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -8,19 +10,17 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useFormik } from 'formik';
 
 import CustomText from '@/components/base/AppText';
+import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import { COLORS, FONTS, ROUTES } from '@/constants';
+import { handleApiError } from '@/services/api/error-handler';
+import { authService } from '@/services/api/modules/auth.service';
 import { useAppDispatch } from '@/store';
 import { loginSuccess } from '@/store/slices/auth.slice';
-import { authService } from '@/services/api/modules/auth.service';
-import { handleApiError } from '@/services/api/error-handler';
-import { registerSchema } from '@/utils/validation/authSchemas';
 import { showToast } from '@/utils/toast';
-import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import type { RegisterFormValues } from '@/utils/validation/authSchemas';
+import { registerSchema } from '@/utils/validation/authSchemas';
 
 export function RegisterScreen() {
   const dispatch = useAppDispatch();
@@ -29,10 +29,10 @@ export function RegisterScreen() {
 
   const formik = useFormik<RegisterFormValues>({
     initialValues: {
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
+      username: 'test1',
+      email: 'test1@gmail.com',
+      password: 'Password@12',
+      confirmPassword: 'Password@12',
       profileImageUri: null,
     },
     validationSchema: registerSchema,
@@ -78,7 +78,6 @@ export function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="px-6 py-10">
-
             <View className="mb-8">
               <CustomText
                 className="text-3xl"
@@ -110,7 +109,9 @@ export function RegisterScreen() {
                 className="flex-row items-center rounded-xl px-4 h-14"
                 style={{ backgroundColor: COLORS.GRAY_100 }}
               >
-                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>👤</CustomText>
+                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>
+                  👤
+                </CustomText>
                 <TextInput
                   placeholder="Choose a username"
                   placeholderTextColor={COLORS.GRAY_400}
@@ -135,7 +136,9 @@ export function RegisterScreen() {
                 className="flex-row items-center rounded-xl px-4 h-14"
                 style={{ backgroundColor: COLORS.GRAY_100 }}
               >
-                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>📧</CustomText>
+                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>
+                  📧
+                </CustomText>
                 <TextInput
                   placeholder="Enter your email"
                   placeholderTextColor={COLORS.GRAY_400}
@@ -161,7 +164,9 @@ export function RegisterScreen() {
                 className="flex-row items-center rounded-xl px-4 h-14"
                 style={{ backgroundColor: COLORS.GRAY_100 }}
               >
-                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>🔒</CustomText>
+                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>
+                  🔒
+                </CustomText>
                 <TextInput
                   placeholder="Create a password"
                   placeholderTextColor={COLORS.GRAY_400}
@@ -194,7 +199,9 @@ export function RegisterScreen() {
                 className="flex-row items-center rounded-xl px-4 h-14"
                 style={{ backgroundColor: COLORS.GRAY_100 }}
               >
-                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>🔒</CustomText>
+                <CustomText className="mr-3" style={{ color: COLORS.GRAY_400 }}>
+                  🔒
+                </CustomText>
                 <TextInput
                   placeholder="Repeat your password"
                   placeholderTextColor={COLORS.GRAY_400}
@@ -255,7 +262,6 @@ export function RegisterScreen() {
                 </CustomText>
               </TouchableOpacity>
             </View>
-
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

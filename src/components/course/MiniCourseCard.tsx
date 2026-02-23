@@ -1,10 +1,14 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { memo, useState } from 'react';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { COLORS, FONTS } from '@/constants';
+import CustomText from '@/components/base/AppText';
+import { FONTS } from '@/constants';
 import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
+import { useTheme } from '@/theme/ThemeContext';
 import type { CourseListItem } from '@/types/course.types';
 
-export const MINI_CARD_WIDTH   = 168;
+export const MINI_CARD_WIDTH = 168;
 export const MINI_THUMB_HEIGHT = 96;
 
 export interface MiniCourseCardProps {
@@ -12,46 +16,74 @@ export interface MiniCourseCardProps {
   onPress: () => void;
 }
 
-export function MiniCourseCard({ course, onPress }: MiniCourseCardProps) {
+export const MiniCourseCard = memo(function MiniCourseCard({
+  course,
+  onPress,
+}: MiniCourseCardProps) {
+  const { colors } = useTheme();
+  const [imgError, setImgError] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      <Image
-        source={{ uri: course.thumbnail }}
-        style={styles.thumbnail}
-        resizeMode="cover"
-      />
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.WHITE, borderColor: colors.BORDER }]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={[styles.thumbWrap, { backgroundColor: colors.GRAY_100 }]}>
+        {(loading || imgError || !course.thumbnail) && (
+          <Ionicons name="image-outline" size={24} color={colors.GRAY_400} />
+        )}
+
+        {course.thumbnail && !imgError && (
+          <Image
+            source={{ uri: course.thumbnail }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+            onLoadEnd={() => setLoading(false)}
+            onError={() => {
+              setLoading(false);
+              setImgError(true);
+            }}
+          />
+        )}
+      </View>
       <View style={styles.body}>
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText} numberOfLines={1}>
+        <View style={[styles.categoryBadge, { backgroundColor: colors.PRIMARY + '18' }]}>
+          <CustomText style={[styles.categoryText, { color: colors.PRIMARY }]} numberOfLines={1}>
             {course.category}
-          </Text>
+          </CustomText>
         </View>
-        <Text style={styles.title} numberOfLines={2}>
+        <CustomText style={[styles.title, { color: colors.TEXT_PRIMARY }]} numberOfLines={2}>
           {course.title}
-        </Text>
-        <Text style={styles.instructor} numberOfLines={1}>
+        </CustomText>
+        <CustomText style={[styles.instructor, { color: colors.TEXT_SECONDARY }]} numberOfLines={1}>
           {course.instructor.name}
-        </Text>
-        <Text style={styles.price}>${course.price.toFixed(2)}</Text>
+        </CustomText>
+        <CustomText style={[styles.price, { color: colors.SECONDARY }]}>
+          ${course.price.toFixed(2)}
+        </CustomText>
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
     width: MINI_CARD_WIDTH,
-    backgroundColor: COLORS.WHITE,
     borderRadius: BORDER_RADIUS.LG,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
     overflow: 'hidden',
     ...SHADOWS.SM,
   },
-  thumbnail: {
+  thumbWrap: {
     width: MINI_CARD_WIDTH,
     height: MINI_THUMB_HEIGHT,
-    backgroundColor: COLORS.GRAY_100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbnail: {
+    ...StyleSheet.absoluteFillObject,
   },
   body: {
     padding: SPACING.SM,
@@ -59,7 +91,6 @@ const styles = StyleSheet.create({
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.PRIMARY + '18',
     borderRadius: BORDER_RADIUS.SM,
     paddingHorizontal: SPACING.XS,
     paddingVertical: 2,
@@ -67,25 +98,21 @@ const styles = StyleSheet.create({
   categoryText: {
     fontFamily: FONTS.MEDIUM,
     fontSize: FONT_SIZES.XS - 1,
-    color: COLORS.PRIMARY,
     textTransform: 'capitalize',
   },
   title: {
     fontFamily: FONTS.MEDIUM,
     fontSize: FONT_SIZES.SM,
-    color: COLORS.TEXT_PRIMARY,
     lineHeight: FONT_SIZES.SM * 1.35,
     marginTop: 2,
   },
   instructor: {
     fontFamily: FONTS.REGULAR,
     fontSize: FONT_SIZES.XS,
-    color: COLORS.TEXT_SECONDARY,
   },
   price: {
     fontFamily: FONTS.BOLD,
     fontSize: FONT_SIZES.SM,
-    color: COLORS.SECONDARY,
     marginTop: 2,
   },
 });

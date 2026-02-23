@@ -1,71 +1,97 @@
-import { memo } from 'react';
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { memo, useState } from 'react';
+import { Image, StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native';
 
-import { COLORS, FONTS } from '@/constants';
+import CustomText from '@/components/base/AppText';
+import { FONTS } from '@/constants';
 import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
+import { useTheme } from '@/theme/ThemeContext';
 import type { CourseListItem } from '@/types/course.types';
 import { BookmarkButton } from './BookmarkButton';
 
 interface CourseCardProps {
   course: CourseListItem;
   onPress: () => void;
+  onImagePress?: () => void;
   style?: ViewStyle;
 }
 
-export const CourseCard = memo(function CourseCard({ course, onPress, style }: CourseCardProps) {
+export const CourseCard = memo(function CourseCard({
+  course,
+  onPress,
+  onImagePress,
+  style,
+}: CourseCardProps) {
+  const { colors } = useTheme();
+  const [imgError, setImgError] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   return (
-    <TouchableOpacity
-      style={[styles.card, style]}
-      onPress={onPress}
-      activeOpacity={0.85}
+    <View
+      style={[styles.card, { backgroundColor: colors.WHITE, borderColor: colors.BORDER }, style]}
     >
-      <View style={styles.imageWrap}>
-        <Image
-          source={{ uri: course.thumbnail }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+      <TouchableOpacity onPress={onImagePress ?? onPress} activeOpacity={0.88}>
+        <View style={[styles.imageWrap, { backgroundColor: colors.GRAY_100 }]}>
+          <View style={[styles.thumbWrap, { backgroundColor: colors.GRAY_100 }]}>
+            {(loading || imgError || !course.thumbnail) && (
+              <Ionicons name="image-outline" size={24} color={colors.GRAY_400} />
+            )}
 
-        <View style={styles.bookmarkOverlay}>
-          <BookmarkButton courseId={course.id} size={20} variant="circle" />
+            {course.thumbnail && !imgError && (
+              <Image
+                source={{ uri: course.thumbnail }}
+                style={styles.thumbnail}
+                resizeMode="cover"
+                onLoadEnd={() => setLoading(false)}
+                onError={() => {
+                  setLoading(false);
+                  setImgError(true);
+                }}
+              />
+            )}
+          </View>
+
+          <View style={styles.bookmarkOverlay}>
+            <BookmarkButton courseId={course.id} size={20} variant="circle" />
+          </View>
+
+          <View style={styles.categoryTag}>
+            <CustomText style={styles.categoryText} numberOfLines={1}>
+              {course.category.replace(/-/g, ' ')}
+            </CustomText>
+          </View>
         </View>
+      </TouchableOpacity>
 
-        <View style={styles.categoryTag}>
-          <Text style={styles.categoryText} numberOfLines={1}>
-            {course.category.replace(/-/g, ' ')}
-          </Text>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
+        <View style={styles.content}>
+          <CustomText style={[styles.title, { color: colors.TEXT_PRIMARY }]} numberOfLines={2}>
+            {course.title}
+          </CustomText>
+
+          <View style={styles.instructorRow}>
+            {course.instructor.avatarUrl ? (
+              <Image
+                source={{ uri: encodeURI(course.instructor.avatarUrl) }}
+                style={[styles.instructorAvatar, { backgroundColor: colors.GRAY_200 }]}
+              />
+            ) : (
+              <View style={[styles.instructorAvatar, { backgroundColor: colors.GRAY_200 }]} />
+            )}
+            <CustomText
+              style={[styles.instructorName, { color: colors.TEXT_SECONDARY }]}
+              numberOfLines={1}
+            >
+              {course.instructor.name}
+            </CustomText>
+          </View>
+
+          <CustomText style={[styles.price, { color: colors.PRIMARY }]}>
+            ${course.price.toFixed(2)}
+          </CustomText>
         </View>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>
-          {course.title}
-        </Text>
-
-        <View style={styles.instructorRow}>
-          {course.instructor.avatarUrl ? (
-            <Image
-              source={{ uri: course.instructor.avatarUrl }}
-              style={styles.instructorAvatar}
-            />
-          ) : (
-            <View style={styles.instructorAvatarFallback} />
-          )}
-          <Text style={styles.instructorName} numberOfLines={1}>
-            {course.instructor.name}
-          </Text>
-        </View>
-
-        <Text style={styles.price}>${course.price.toFixed(2)}</Text>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 });
 
@@ -74,10 +100,8 @@ const AVATAR_SIZE = 24;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.WHITE,
     borderRadius: BORDER_RADIUS.LG,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
     overflow: 'hidden',
     ...SHADOWS.MD,
   },
@@ -85,11 +109,18 @@ const styles = StyleSheet.create({
   imageWrap: {
     width: '100%',
     height: THUMBNAIL_HEIGHT,
-    backgroundColor: COLORS.GRAY_100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbnail: {
+    ...StyleSheet.absoluteFillObject,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
   },
   bookmarkOverlay: {
     position: 'absolute',
@@ -108,7 +139,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontFamily: FONTS.MEDIUM,
     fontSize: FONT_SIZES.XS,
-    color: COLORS.WHITE,
+    color: '#FFFFFF',
     textTransform: 'capitalize',
   },
 
@@ -119,7 +150,6 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONTS.BOLD,
     fontSize: FONT_SIZES.BASE,
-    color: COLORS.TEXT_PRIMARY,
     lineHeight: FONT_SIZES.BASE * 1.4,
   },
 
@@ -133,25 +163,16 @@ const styles = StyleSheet.create({
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: COLORS.GRAY_200,
-  },
-  instructorAvatarFallback: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: COLORS.GRAY_200,
   },
   instructorName: {
     fontFamily: FONTS.REGULAR,
     fontSize: FONT_SIZES.SM,
-    color: COLORS.TEXT_SECONDARY,
     flex: 1,
   },
 
   price: {
     fontFamily: FONTS.BOLD,
     fontSize: FONT_SIZES.MD,
-    color: COLORS.PRIMARY,
     marginTop: 2,
   },
 });

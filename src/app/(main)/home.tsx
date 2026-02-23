@@ -5,6 +5,7 @@ import {
   FlatList,
   Image,
   ScrollView,
+  Switch,
   TouchableOpacity,
   View,
   type ListRenderItemInfo,
@@ -14,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomText from '@/components/base/AppText';
 import { CourseCard } from '@/components/course/CourseCard';
 import { MINI_CARD_WIDTH, MiniCourseCard } from '@/components/course/MiniCourseCard';
-import { COLORS, FONTS, ROUTES } from '@/constants';
+import { FONTS, ROUTES } from '@/constants';
 import { courseDetailRoute } from '@/constants/routes';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
@@ -27,6 +28,8 @@ import {
   selectIsCoursesLoading,
   selectRecommendedCourses,
 } from '@/store/slices/course.slice';
+import { selectDarkMode, setDarkMode } from '@/store/slices/preferences.slice';
+import { useTheme } from '@/theme/ThemeContext';
 import type { CourseListItem } from '@/types/course.types';
 
 const CONTINUE_LIMIT = 5;
@@ -48,20 +51,23 @@ interface SectionHeaderProps {
 }
 
 function SectionHeader({ title, onSeeAll, seeAllLabel = 'See all' }: SectionHeaderProps) {
+  const { colors } = useTheme();
   return (
-    <View className="flex-row items-center justify-between px-5 mb-3">
-      <CustomText
-        className="text-base"
-        style={{ fontFamily: FONTS.BOLD, color: COLORS.TEXT_PRIMARY }}
-      >
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        marginBottom: 12,
+      }}
+    >
+      <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 16, color: colors.TEXT_PRIMARY }}>
         {title}
       </CustomText>
       {onSeeAll && (
         <TouchableOpacity onPress={onSeeAll} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <CustomText
-            className="text-sm"
-            style={{ fontFamily: FONTS.MEDIUM, color: COLORS.SECONDARY }}
-          >
+          <CustomText style={{ fontFamily: FONTS.MEDIUM, fontSize: 14, color: colors.SECONDARY }}>
             {seeAllLabel} →
           </CustomText>
         </TouchableOpacity>
@@ -71,13 +77,14 @@ function SectionHeader({ title, onSeeAll, seeAllLabel = 'See all' }: SectionHead
 }
 
 function MiniCardSkeleton() {
+  const { colors } = useTheme();
   return (
     <View
       style={{
         width: MINI_CARD_WIDTH,
         height: 196,
         borderRadius: 16,
-        backgroundColor: COLORS.GRAY_100,
+        backgroundColor: colors.GRAY_100,
       }}
     />
   );
@@ -90,40 +97,57 @@ function HorizontalSeparator() {
 }
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
   const dispatch = useAppDispatch();
 
+  const darkMode = useAppSelector(selectDarkMode);
+
   const { user, isGuest } = useAppSelector((state) => state.auth);
-  const enrolledCount    = useAppSelector(selectEnrolledCount);
-  const completedCount   = useAppSelector(selectCompletedCount);
-  const completionPct    = useAppSelector(selectCompletionPercentage);
+  const enrolledCount = useAppSelector(selectEnrolledCount);
+  const completedCount = useAppSelector(selectCompletedCount);
+  const completionPct = useAppSelector(selectCompletionPercentage);
   const isCoursesLoading = useAppSelector(selectIsCoursesLoading);
-  const activeEnrolled   = useAppSelector(selectActiveEnrolledCourses);
-  const recommended      = useAppSelector(selectRecommendedCourses);
-  const bookmarked       = useAppSelector(selectBookmarkedCoursesData);
+  const activeEnrolled = useAppSelector(selectActiveEnrolledCourses);
+  const recommended = useAppSelector(selectRecommendedCourses);
+  const bookmarked = useAppSelector(selectBookmarkedCoursesData);
 
-  const continueCourses    = useMemo(() => activeEnrolled.slice(0, CONTINUE_LIMIT),    [activeEnrolled]);
-  const recommendedCourses = useMemo(() => recommended.slice(0, RECOMMENDED_LIMIT),    [recommended]);
-  const bookmarkedPreview  = useMemo(() => bookmarked.slice(0, BOOKMARKED_LIMIT),       [bookmarked]);
+  const continueCourses = useMemo(() => activeEnrolled.slice(0, CONTINUE_LIMIT), [activeEnrolled]);
+  const recommendedCourses = useMemo(() => recommended.slice(0, RECOMMENDED_LIMIT), [recommended]);
+  const bookmarkedPreview = useMemo(() => bookmarked.slice(0, BOOKMARKED_LIMIT), [bookmarked]);
 
-  useEffect(() => { dispatch(fetchAllCourses()); }, [dispatch]);
+  function handleDarkMode(value: boolean): void {
+    dispatch(setDarkMode(value));
+  }
+
+  useEffect(() => {
+    dispatch(fetchAllCourses());
+  }, [dispatch]);
 
   const avatarSource = user?.profileImageUri || user?.avatarUrl;
-  const initial      = user?.username?.[0]?.toUpperCase() ?? '?';
+  const initial = user?.username?.[0]?.toUpperCase() ?? '?';
 
   const handleSeeAllBookmarked = useCallback(() => {
-    router.navigate({ pathname: ROUTES.COURSES as never, params: { section: 'bookmarked' } });
+    router.push(ROUTES.BOOKMARKS as never);
   }, []);
 
   const renderContinueItem = useCallback(
     ({ item }: ListRenderItemInfo<CourseListItem>) => (
-      <MiniCourseCard course={item} onPress={() => router.push(courseDetailRoute(item.id) as never)} />
-    ), [],
+      <MiniCourseCard
+        course={item}
+        onPress={() => router.push(courseDetailRoute(item.id) as never)}
+      />
+    ),
+    [],
   );
 
   const renderRecommendedItem = useCallback(
     ({ item }: ListRenderItemInfo<CourseListItem>) => (
-      <MiniCourseCard course={item} onPress={() => router.push(courseDetailRoute(item.id) as never)} />
-    ), [],
+      <MiniCourseCard
+        course={item}
+        onPress={() => router.push(courseDetailRoute(item.id) as never)}
+      />
+    ),
+    [],
   );
 
   const renderBookmarkedItem = useCallback(
@@ -133,15 +157,25 @@ export default function HomeScreen() {
         onPress={() => router.push(courseDetailRoute(item.id) as never)}
         style={{ width: BOOKMARKED_CARD_WIDTH }}
       />
-    ), [],
+    ),
+    [],
   );
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.BACKGROUND }} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <View className="px-5 pt-5 pb-6" style={{ backgroundColor: COLORS.WHITE }}>
-          <View className="flex-row items-center">
-
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.BACKGROUND }} edges={['top']}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 48 }}
+      >
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 24,
+            backgroundColor: colors.WHITE,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity
               onPress={() => !isGuest && router.push(ROUTES.PROFILE as never)}
               activeOpacity={isGuest ? 1 : 0.85}
@@ -155,7 +189,7 @@ export default function HomeScreen() {
                     height: 54,
                     borderRadius: 27,
                     borderWidth: 2.5,
-                    borderColor: COLORS.SECONDARY_LIGHT,
+                    borderColor: colors.SECONDARY_LIGHT,
                   }}
                 />
               ) : (
@@ -164,15 +198,15 @@ export default function HomeScreen() {
                     width: 54,
                     height: 54,
                     borderRadius: 27,
-                    backgroundColor: COLORS.SECONDARY_LIGHT,
+                    backgroundColor: colors.SECONDARY_LIGHT,
                     borderWidth: 2.5,
-                    borderColor: COLORS.SECONDARY + '55',
+                    borderColor: colors.SECONDARY + '55',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
                   <CustomText
-                    style={{ fontFamily: FONTS.BOLD, fontSize: 21, color: COLORS.SECONDARY }}
+                    style={{ fontFamily: FONTS.BOLD, fontSize: 21, color: colors.SECONDARY }}
                   >
                     {isGuest ? '👋' : initial}
                   </CustomText>
@@ -180,33 +214,61 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
 
-            <View className="flex-1">
+            <View style={{ flex: 1 }}>
               <CustomText
-                className="text-xs"
-                style={{ color: COLORS.TEXT_SECONDARY, letterSpacing: 0.2 }}
+                style={{ fontSize: 12, color: colors.TEXT_SECONDARY, letterSpacing: 0.2 }}
               >
                 {isGuest ? 'Welcome to' : `${getGreeting()},`}
               </CustomText>
               <CustomText
-                style={{ fontFamily: FONTS.BOLD, fontSize: 20, color: COLORS.TEXT_PRIMARY, marginTop: 1 }}
+                style={{
+                  fontFamily: FONTS.BOLD,
+                  fontSize: 20,
+                  color: colors.TEXT_PRIMARY,
+                  marginTop: 1,
+                }}
               >
                 {isGuest ? 'HouseOfEdTech' : `${user?.username ?? ''}!`}
               </CustomText>
-              <CustomText
-                className="text-xs mt-0.5"
-                style={{ color: COLORS.TEXT_SECONDARY }}
-              >
+              <CustomText style={{ fontSize: 12, marginTop: 2, color: colors.TEXT_SECONDARY }}>
                 {isGuest ? 'Explore and learn anything.' : 'Ready to continue learning?'}
               </CustomText>
             </View>
 
-            {!isGuest && (
+            {isGuest ? (
+              <View style={{ alignItems: 'center' }}>
+                <Switch
+                  value={darkMode}
+                  onValueChange={handleDarkMode}
+                  trackColor={{ false: colors.GRAY_200, true: colors.SECONDARY + 'BB' }}
+                  thumbColor={darkMode ? colors.SECONDARY : colors.WHITE}
+                  ios_backgroundColor={colors.GRAY_200}
+                  style={{ marginBottom: -6 }}
+                />
+                <CustomText
+                  style={{
+                    fontSize: 12,
+                    marginTop: 0,
+                    color: colors.TEXT_SECONDARY,
+                    fontFamily: FONTS.MEDIUM,
+                  }}
+                >
+                  {darkMode ? 'Dark' : 'Light'} Mode
+                </CustomText>
+              </View>
+            ) : (
               <TouchableOpacity
-                className="w-10 h-10 rounded-full items-center justify-center"
-                style={{ backgroundColor: COLORS.GRAY_100 }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 99,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: colors.GRAY_100,
+                }}
                 activeOpacity={0.7}
               >
-                <Ionicons name="notifications-outline" size={20} color={COLORS.TEXT_PRIMARY} />
+                <Ionicons name="notifications-outline" size={20} color={colors.TEXT_PRIMARY} />
               </TouchableOpacity>
             )}
           </View>
@@ -214,56 +276,97 @@ export default function HomeScreen() {
 
         {!isGuest && (
           <View
-            className="mx-5 mt-5 rounded-3xl p-5"
             style={{
-              backgroundColor: COLORS.SECONDARY_LIGHT,
-              shadowColor: COLORS.SECONDARY,
+              marginHorizontal: 20,
+              marginTop: 20,
+              borderRadius: 24,
+              padding: 20,
+              backgroundColor: colors.SECONDARY_LIGHT,
+              shadowColor: colors.SECONDARY,
               shadowOpacity: 0.16,
               shadowRadius: 20,
               shadowOffset: { width: 0, height: 6 },
               elevation: 6,
             }}
           >
-            <View className="flex-row items-center justify-between mb-5">
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 20,
+              }}
+            >
               <CustomText
-                style={{ fontFamily: FONTS.BOLD, fontSize: 15, color: COLORS.SECONDARY_DARK }}
+                style={{ fontFamily: FONTS.BOLD, fontSize: 15, color: colors.SECONDARY_DARK }}
               >
                 Your Learning Progress
               </CustomText>
               <View
-                className="px-3 py-1 rounded-full"
-                style={{ backgroundColor: COLORS.SECONDARY + '25' }}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  borderRadius: 99,
+                  backgroundColor: colors.SECONDARY + '25',
+                }}
               >
                 <CustomText
-                  className="text-xs"
-                  style={{ fontFamily: FONTS.MEDIUM, color: COLORS.SECONDARY }}
+                  style={{ fontFamily: FONTS.MEDIUM, fontSize: 12, color: colors.SECONDARY }}
                 >
                   {completionPct}% done
                 </CustomText>
               </View>
             </View>
 
-            <View className="flex-row mb-5">
-              {([
-                { icon: 'book-outline',             label: 'Enrolled',    value: enrolledCount,                   color: COLORS.PRIMARY  },
-                { icon: 'checkmark-circle-outline', label: 'Completed',   value: completedCount,                  color: COLORS.SUCCESS  },
-                { icon: 'time-outline',             label: 'In Progress', value: enrolledCount - completedCount,  color: COLORS.ACCENT   },
-              ] as const).map((s, i) => (
-                <View key={i} className="flex-1 items-center">
+            <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+              {(
+                [
+                  {
+                    icon: 'book-outline',
+                    label: 'Enrolled',
+                    value: enrolledCount,
+                    color: colors.PRIMARY,
+                  },
+                  {
+                    icon: 'checkmark-circle-outline',
+                    label: 'Completed',
+                    value: completedCount,
+                    color: colors.SUCCESS,
+                  },
+                  {
+                    icon: 'time-outline',
+                    label: 'In Progress',
+                    value: enrolledCount - completedCount,
+                    color: colors.ACCENT,
+                  },
+                ] as const
+              ).map((s, i) => (
+                <View key={i} style={{ flex: 1, alignItems: 'center' }}>
                   <View
-                    className="w-9 h-9 rounded-xl items-center justify-center mb-2"
-                    style={{ backgroundColor: s.color + '22' }}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 12,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 8,
+                      backgroundColor: s.color + '22',
+                    }}
                   >
                     <Ionicons name={s.icon} size={17} color={s.color} />
                   </View>
                   <CustomText
-                    style={{ fontFamily: FONTS.BOLD, fontSize: 19, color: COLORS.TEXT_PRIMARY }}
+                    style={{ fontFamily: FONTS.BOLD, fontSize: 19, color: colors.TEXT_PRIMARY }}
                   >
                     {s.value}
                   </CustomText>
                   <CustomText
-                    className="text-xs text-center mt-0.5"
-                    style={{ color: COLORS.TEXT_SECONDARY }}
+                    style={{
+                      fontSize: 12,
+                      textAlign: 'center',
+                      marginTop: 2,
+                      color: colors.TEXT_SECONDARY,
+                    }}
                   >
                     {s.label}
                   </CustomText>
@@ -272,29 +375,34 @@ export default function HomeScreen() {
             </View>
 
             <View>
-              <View className="flex-row justify-between mb-1.5">
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}
+              >
                 <CustomText
-                  className="text-xs"
-                  style={{ fontFamily: FONTS.MEDIUM, color: COLORS.TEXT_SECONDARY }}
+                  style={{ fontFamily: FONTS.MEDIUM, fontSize: 12, color: colors.TEXT_SECONDARY }}
                 >
                   Overall completion
                 </CustomText>
                 <CustomText
-                  className="text-xs"
-                  style={{ fontFamily: FONTS.BOLD, color: COLORS.SECONDARY }}
+                  style={{ fontFamily: FONTS.BOLD, fontSize: 12, color: colors.SECONDARY }}
                 >
                   {completionPct}%
                 </CustomText>
               </View>
               <View
-                className="w-full rounded-full overflow-hidden"
-                style={{ height: 7, backgroundColor: COLORS.SECONDARY + '2A' }}
+                style={{
+                  width: '100%',
+                  borderRadius: 99,
+                  overflow: 'hidden',
+                  height: 7,
+                  backgroundColor: colors.SECONDARY + '2A',
+                }}
               >
                 <View
                   style={{
                     height: '100%',
                     width: `${Math.min(completionPct, 100)}%`,
-                    backgroundColor: COLORS.SECONDARY,
+                    backgroundColor: colors.SECONDARY,
                     borderRadius: 99,
                   }}
                 />
@@ -305,10 +413,13 @@ export default function HomeScreen() {
 
         {isGuest && (
           <View
-            className="mx-5 mt-5 rounded-3xl p-6"
             style={{
-              backgroundColor: COLORS.SECONDARY,
-              shadowColor: COLORS.SECONDARY,
+              marginHorizontal: 20,
+              marginTop: 20,
+              borderRadius: 24,
+              padding: 24,
+              backgroundColor: colors.SECONDARY,
+              shadowColor: colors.SECONDARY,
               shadowOpacity: 0.28,
               shadowRadius: 24,
               shadowOffset: { width: 0, height: 8 },
@@ -316,26 +427,36 @@ export default function HomeScreen() {
             }}
           >
             <CustomText
-              style={{ fontFamily: FONTS.BOLD, fontSize: 22, color: COLORS.WHITE, lineHeight: 30 }}
+              style={{ fontFamily: FONTS.BOLD, fontSize: 22, color: '#FFFFFF', lineHeight: 30 }}
             >
               {'Start your learning\njourney today 🚀'}
             </CustomText>
             <CustomText
-              className="text-sm mt-2 mb-6"
-              style={{ color: 'rgba(255,255,255,0.70)', lineHeight: 20 }}
+              style={{
+                fontSize: 14,
+                marginTop: 8,
+                marginBottom: 24,
+                color: 'rgba(255,255,255,0.70)',
+                lineHeight: 20,
+              }}
             >
-              Join thousands of learners worldwide. Track progress, bookmark courses and unlock your full potential.
+              Join thousands of learners worldwide. Track progress, bookmark courses and unlock your
+              full potential.
             </CustomText>
-            <View className="flex-row" style={{ gap: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
                 activeOpacity={0.88}
                 onPress={() => router.push(ROUTES.REGISTER as never)}
-                className="flex-1 rounded-2xl py-3.5 items-center"
-                style={{ backgroundColor: COLORS.WHITE }}
+                style={{
+                  flex: 1,
+                  borderRadius: 16,
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                  backgroundColor: '#FFFFFF',
+                }}
               >
                 <CustomText
-                  className="text-sm"
-                  style={{ fontFamily: FONTS.BOLD, color: COLORS.SECONDARY }}
+                  style={{ fontFamily: FONTS.BOLD, fontSize: 14, color: colors.SECONDARY }}
                 >
                   Sign Up
                 </CustomText>
@@ -343,24 +464,28 @@ export default function HomeScreen() {
               <TouchableOpacity
                 activeOpacity={0.88}
                 onPress={() => router.push(ROUTES.LOGIN as never)}
-                className="flex-1 rounded-2xl py-3.5 items-center"
-                style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)' }}
+                style={{
+                  flex: 1,
+                  borderRadius: 16,
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(255,255,255,0.4)',
+                }}
               >
-                <CustomText
-                  className="text-sm"
-                  style={{ fontFamily: FONTS.MEDIUM, color: COLORS.WHITE }}
-                >
+                <CustomText style={{ fontFamily: FONTS.MEDIUM, fontSize: 14, color: '#FFFFFF' }}>
                   Login
                 </CustomText>
               </TouchableOpacity>
             </View>
           </View>
         )}
+
         {!isGuest && continueCourses.length > 0 && (
-          <View className="mt-8">
+          <View style={{ marginTop: 32 }}>
             <SectionHeader
               title="Continue Learning"
-              onSeeAll={() => router.push(ROUTES.COURSES as never)}
+              onSeeAll={() => router.push(ROUTES.MY_COURSES as never)}
             />
             <FlatList
               data={continueCourses}
@@ -375,7 +500,7 @@ export default function HomeScreen() {
         )}
 
         {bookmarkedPreview.length > 0 && (
-          <View className="mt-8">
+          <View style={{ marginTop: 32 }}>
             <SectionHeader title="Bookmarked" onSeeAll={handleSeeAllBookmarked} />
             <FlatList
               data={bookmarkedPreview}
@@ -389,15 +514,14 @@ export default function HomeScreen() {
           </View>
         )}
 
-  
-        <View className="mt-8">
+        <View style={{ marginTop: 32 }}>
           <SectionHeader
             title={isGuest ? 'Recommended Courses' : 'Recommended for You'}
             onSeeAll={() => router.push(ROUTES.COURSES as never)}
             seeAllLabel="View all"
           />
           {isCoursesLoading && recommendedCourses.length === 0 ? (
-            <View className="flex-row" style={{ paddingHorizontal: 20, gap: 12 }}>
+            <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 12 }}>
               <MiniCardSkeleton />
               <MiniCardSkeleton />
             </View>
@@ -413,26 +537,37 @@ export default function HomeScreen() {
             />
           ) : (
             <View
-              className="mx-5 flex-row items-center rounded-2xl p-4"
-              style={{ backgroundColor: COLORS.GRAY_100, gap: 12 }}
+              style={{
+                marginHorizontal: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderRadius: 16,
+                padding: 16,
+                backgroundColor: colors.GRAY_100,
+                gap: 12,
+              }}
             >
-              <Ionicons name="checkmark-done-circle-outline" size={26} color={COLORS.GRAY_400} />
+              <Ionicons name="checkmark-done-circle-outline" size={26} color={colors.GRAY_400} />
               <CustomText
-                className="flex-1 text-sm"
-                style={{ color: COLORS.TEXT_SECONDARY, lineHeight: 20 }}
+                style={{ flex: 1, fontSize: 14, color: colors.TEXT_SECONDARY, lineHeight: 20 }}
               >
-                You're enrolled in all available courses — well done!
+                {/* {"You're enrolled in all available courses — well done!"} */}
               </CustomText>
             </View>
           )}
         </View>
 
         <TouchableOpacity
-          className="mx-5 mt-8 flex-row items-center rounded-2xl p-4"
           style={{
-            backgroundColor: COLORS.PRIMARY,
+            marginHorizontal: 20,
+            marginTop: 32,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 16,
+            padding: 16,
             gap: 14,
-            shadowColor: COLORS.PRIMARY,
+            backgroundColor: colors.SECONDARY,
+            shadowColor: colors.SECONDARY,
             shadowOpacity: 0.2,
             shadowRadius: 16,
             shadowOffset: { width: 0, height: 5 },
@@ -442,21 +577,28 @@ export default function HomeScreen() {
           activeOpacity={0.85}
         >
           <View
-            className="w-11 h-11 rounded-xl items-center justify-center"
-            style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255,255,255,0.18)',
+            }}
           >
-            <Ionicons name="library-outline" size={22} color={COLORS.WHITE} />
+            <Ionicons name="library-outline" size={22} color="#FFFFFF" />
           </View>
-          <View className="flex-1">
-            <CustomText
-              className="text-base"
-              style={{ fontFamily: FONTS.BOLD, color: COLORS.WHITE }}
-            >
+          <View style={{ flex: 1 }}>
+            <CustomText style={{ fontFamily: FONTS.BOLD, fontSize: 16, color: '#FFFFFF' }}>
               Browse all courses
             </CustomText>
             <CustomText
-              className="text-xs mt-0.5"
-              style={{ color: 'rgba(255,255,255,0.68)', lineHeight: 17 }}
+              style={{
+                fontSize: 12,
+                marginTop: 2,
+                color: 'rgba(255,255,255,0.68)',
+                lineHeight: 17,
+              }}
             >
               {enrolledCount > 0
                 ? 'Discover new topics and keep growing.'
@@ -465,7 +607,6 @@ export default function HomeScreen() {
           </View>
           <Ionicons name="arrow-forward" size={18} color="rgba(255,255,255,0.8)" />
         </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );

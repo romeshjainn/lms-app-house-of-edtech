@@ -137,7 +137,8 @@ export function buildCourseHtml(): string {
 
   <div class="sticky-cta" id="sticky-cta" style="display:none">
     <button id="btn-complete" class="btn-complete" onclick="handleMarkCompleted()">
-      Mark as Completed
+      
+    pleted
     </button>
   </div>
 

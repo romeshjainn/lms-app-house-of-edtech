@@ -1,13 +1,18 @@
-import { type ReactNode } from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { type ReactNode } from 'react';
+import { LogBox } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import Toast from 'react-native-toast-message';
 
-import { store, persistor } from '@/store';
+import { BiometricLockOverlay } from '@/components/common/BiometricLockOverlay';
 import { useAppInit } from '@/hooks/use-app-init';
 import { NavigationGuard } from '@/navigation/NavigationGuard';
+import { persistor, store } from '@/store';
+import { ThemeProvider } from '@/theme/ThemeContext';
+
+LogBox.ignoreLogs(['expo-notifications: Android Push notifications']);
 
 function AppInit({ children }: { children: ReactNode }) {
   useAppInit();
@@ -24,9 +29,12 @@ export function AppProviders({ children }: AppProvidersProps) {
       <PersistGate loading={null} persistor={persistor}>
         <AppInit>
           <SafeAreaProvider>
-            <StatusBar style="light" />
-            <NavigationGuard>{children}</NavigationGuard>
-            <Toast />
+            <ThemeProvider>
+              <StatusBar style="light" />
+              <NavigationGuard>{children}</NavigationGuard>
+              <BiometricLockOverlay />
+              <Toast />
+            </ThemeProvider>
           </SafeAreaProvider>
         </AppInit>
       </PersistGate>
