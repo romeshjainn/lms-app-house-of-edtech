@@ -1,4 +1,3 @@
-
 export const IMAGES = {
   androidIconBack: require('./images/android-icon-background.png'),
   androidIconForeground: require('./images/android-icon-foreground.png'),
@@ -12,6 +11,7 @@ export const IMAGES = {
   partialReactLogo: require('./images/partial-react-logo.png'),
 
   welcome: require('./png/welcome.png'),
+  profileAvatar: require('./images/profile-avatar.jpg'),
   cousrePlaceholder: require('./png/course-placeholder.png'),
 } as const;
 

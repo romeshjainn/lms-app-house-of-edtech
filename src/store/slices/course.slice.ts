@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit';
 
 import { STORAGE_KEYS } from '@/constants';
-import { asyncStorage } from '@/services/storage/async-storage';
 import { handleApiError, type AppError } from '@/services/api/error-handler';
+import { asyncStorage } from '@/services/storage/async-storage';
 import type { CourseListItem, CourseStoreState } from '@/types/course.types';
 import type { RootState } from '../root-reducer';
 
@@ -13,6 +13,7 @@ const initialState: CourseStoreState = {
   allCourses: [],
   isCoursesLoading: false,
   isHydrated: false,
+  isCoursesError: false,
 };
 
 async function readNumberArray(key: string): Promise<number[]> {
@@ -20,17 +21,11 @@ async function readNumberArray(key: string): Promise<number[]> {
   return json ? (JSON.parse(json) as number[]) : [];
 }
 
-export const fetchAllCourses = createAsyncThunk<
-  CourseListItem[],
-  void,
-  { rejectValue: AppError }
->(
+export const fetchAllCourses = createAsyncThunk<CourseListItem[], void, { rejectValue: AppError }>(
   'course/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const { courseService } = await import(
-        '@/services/api/modules/course.service'
-      );
+      const { courseService } = await import('@/services/api/modules/course.service');
       return await courseService.getCourses();
     } catch (err) {
       return rejectWithValue(handleApiError(err));
@@ -42,18 +37,15 @@ export const hydrateCourse = createAsyncThunk<{
   bookmarkedIds: number[];
   enrolledIds: number[];
   completedCourseIds: number[];
-}>(
-  'course/hydrate',
-  async () => {
-    const [bookmarkedIds, enrolledIds, completedCourseIds] = await Promise.all([
-      readNumberArray(STORAGE_KEYS.BOOKMARKED_COURSES),
-      readNumberArray(STORAGE_KEYS.ENROLLED_COURSES),
-      readNumberArray(STORAGE_KEYS.COMPLETED_COURSES),
-    ]);
+}>('course/hydrate', async () => {
+  const [bookmarkedIds, enrolledIds, completedCourseIds] = await Promise.all([
+    readNumberArray(STORAGE_KEYS.BOOKMARKED_COURSES),
+    readNumberArray(STORAGE_KEYS.ENROLLED_COURSES),
+    readNumberArray(STORAGE_KEYS.COMPLETED_COURSES),
+  ]);
 
-    return { bookmarkedIds, enrolledIds, completedCourseIds };
-  },
-);
+  return { bookmarkedIds, enrolledIds, completedCourseIds };
+});
 
 export const hydrateCompletedCourses = createAsyncThunk<number[]>(
   'course/hydrateCompleted',
@@ -70,10 +62,7 @@ export const toggleBookmark = createAsyncThunk<number[], number>(
       ? current.filter((id) => id !== courseId)
       : [...current, courseId];
 
-    await asyncStorage.setItem(
-      STORAGE_KEYS.BOOKMARKED_COURSES,
-      JSON.stringify(next),
-    );
+    await asyncStorage.setItem(STORAGE_KEYS.BOOKMARKED_COURSES, JSON.stringify(next));
 
     return next;
   },
@@ -89,10 +78,7 @@ export const toggleEnrollment = createAsyncThunk<number[], number>(
       ? current.filter((id) => id !== courseId)
       : [...current, courseId];
 
-    await asyncStorage.setItem(
-      STORAGE_KEYS.ENROLLED_COURSES,
-      JSON.stringify(next),
-    );
+    await asyncStorage.setItem(STORAGE_KEYS.ENROLLED_COURSES, JSON.stringify(next));
 
     return next;
   },
@@ -108,10 +94,7 @@ export const markCourseCompleted = createAsyncThunk<number[], number>(
 
     const next = [...current, courseId];
 
-    await asyncStorage.setItem(
-      STORAGE_KEYS.COMPLETED_COURSES,
-      JSON.stringify(next),
-    );
+    await asyncStorage.setItem(STORAGE_KEYS.COMPLETED_COURSES, JSON.stringify(next));
 
     return next;
   },
@@ -125,13 +108,16 @@ const courseSlice = createSlice({
     builder
       .addCase(fetchAllCourses.pending, (state) => {
         state.isCoursesLoading = true;
+        state.isCoursesError = false;
       })
       .addCase(fetchAllCourses.fulfilled, (state, action) => {
         state.allCourses = action.payload;
         state.isCoursesLoading = false;
+        state.isCoursesError = false;
       })
       .addCase(fetchAllCourses.rejected, (state) => {
         state.isCoursesLoading = false;
+        state.isCoursesError = true;
       });
 
     builder
@@ -168,10 +154,11 @@ const courseSlice = createSlice({
 
 export default courseSlice.reducer;
 
-const selectAllCoursesBase    = (state: RootState) => state.course.allCourses;
-const selectBookmarkedIds     = (state: RootState) => state.course.bookmarkedIds;
-const selectEnrolledIds       = (state: RootState) => state.course.enrolledIds;
-const selectCompletedIds      = (state: RootState) => state.course.completedCourseIds;
+const selectAllCoursesBase = (state: RootState) => state.course.allCourses;
+const selectBookmarkedIds = (state: RootState) => state.course.bookmarkedIds;
+const selectEnrolledIds = (state: RootState) => state.course.enrolledIds;
+const selectCompletedIds = (state: RootState) => state.course.completedCourseIds;
+export const selectIsCoursesError = (state: RootState): boolean => state.course.isCoursesError;
 
 export const selectIsBookmarked =
   (courseId: number) =>
@@ -185,13 +172,9 @@ export const selectIsCompleted =
   (courseId: number) =>
   (state: RootState): boolean =>
     state.course.completedCourseIds.includes(courseId);
-export const selectIsCoursesLoading = (state: RootState): boolean =>
-  state.course.isCoursesLoading;
+export const selectIsCoursesLoading = (state: RootState): boolean => state.course.isCoursesLoading;
 
-export const selectAllCourses = createSelector(
-  selectAllCoursesBase,
-  (courses) => courses,
-);
+export const selectAllCourses = createSelector(selectAllCoursesBase, (courses) => courses);
 export const selectCompletedCount = createSelector(
   selectCompletedIds,
   (completedIds) => completedIds.length,
@@ -206,9 +189,7 @@ export const selectCompletionPercentage = createSelector(
   selectEnrolledIds,
   (completedIds, enrolledIds) => {
     if (enrolledIds.length === 0) return 0;
-    const completedEnrolled = completedIds.filter((id) =>
-      enrolledIds.includes(id),
-    ).length;
+    const completedEnrolled = completedIds.filter((id) => enrolledIds.includes(id)).length;
     return Math.round((completedEnrolled / enrolledIds.length) * 100);
   },
 );
@@ -230,16 +211,13 @@ export const selectActiveEnrolledCourses = createSelector(
   selectEnrolledIds,
   selectCompletedIds,
   (courses, enrolledIds, completedIds) =>
-    courses.filter(
-      (c) => enrolledIds.includes(c.id) && !completedIds.includes(c.id),
-    ),
+    courses.filter((c) => enrolledIds.includes(c.id) && !completedIds.includes(c.id)),
 );
 
 export const selectRecommendedCourses = createSelector(
   selectAllCoursesBase,
   selectEnrolledIds,
-  (courses, enrolledIds) =>
-    courses.filter((c) => !enrolledIds.includes(c.id)),
+  (courses, enrolledIds) => courses.filter((c) => !enrolledIds.includes(c.id)),
 );
 
 export const selectBookmarkedCoursesData = createSelector(

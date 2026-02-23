@@ -10,7 +10,7 @@ import { COLORS, FONTS } from '@/constants';
 import { handleApiError } from '@/services/api/error-handler';
 import { courseService } from '@/services/api/modules/course.service';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { markCourseCompleted, selectIsCompleted } from '@/store/slices/course.slice';
+import { markCourseCompleted, selectIsCompleted, selectIsEnrolled } from '@/store/slices/course.slice';
 import { BORDER_RADIUS, FONT_SIZES, SPACING } from '@/theme';
 import type { CourseDetail } from '@/types/course.types';
 import { buildCourseHtml } from '@/web/buildCourseHtml';
@@ -26,6 +26,8 @@ export default function CourseContentScreen() {
 
   const dispatch = useAppDispatch();
   const isCompleted = useAppSelector(selectIsCompleted(id));
+  const isEnrolled = useAppSelector(selectIsEnrolled(id));
+  const isGuest = useAppSelector((s) => s.auth.isGuest);
 
   const accessToken = useAppSelector((s) => s.auth.accessToken);
 
@@ -62,9 +64,11 @@ export default function CourseContentScreen() {
         var course = ${JSON.stringify(course)};
         var token  = ${JSON.stringify(accessToken ?? '')};
         var done   = ${JSON.stringify(isCompleted)};
+        var isGuest = ${JSON.stringify(isGuest)};
+        var isEnrolled = ${JSON.stringify(isEnrolled)};
         window.__AUTH_TOKEN__ = token;
         if (typeof window.__initCourse__ === 'function') {
-          window.__initCourse__(course, done);
+          window.__initCourse__(course, done, isGuest, isEnrolled);
         }
       })();
     `

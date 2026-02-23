@@ -138,7 +138,7 @@ export function buildCourseHtml(): string {
   <div class="sticky-cta" id="sticky-cta" style="display:none">
     <button id="btn-complete" class="btn-complete" onclick="handleMarkCompleted()">
       
-    pleted
+    Mark as Completed
     </button>
   </div>
 
@@ -164,7 +164,7 @@ export function buildCourseHtml(): string {
     var _courseId = null;
     var _isCompleted = false;
 
-    window.__initCourse__ = function(course, isAlreadyCompleted) {
+    window.__initCourse__ = function(course, isAlreadyCompleted, isGuest, isEnrolled) {
       _courseId = course.id;
       _isCompleted = !!isAlreadyCompleted;
 
@@ -224,7 +224,9 @@ export function buildCourseHtml(): string {
 
       document.getElementById('loader').style.display = 'none';
       document.getElementById('content').style.display = 'block';
-      document.getElementById('sticky-cta').style.display = 'flex';
+      if (!isGuest && isEnrolled) {
+        document.getElementById('sticky-cta').style.display = 'flex';
+      }
     };
 
     function handleMarkCompleted() {

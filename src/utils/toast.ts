@@ -8,6 +8,7 @@ export const showToast = {
       text2: message,
       visibilityTime: 3000,
       position: 'top',
+      swipeable: true,
     });
   },
 
@@ -18,6 +19,7 @@ export const showToast = {
       text2: message,
       visibilityTime: 4500,
       position: 'top',
+      swipeable: true,
     });
   },
 
@@ -28,6 +30,7 @@ export const showToast = {
       text2: message,
       visibilityTime: 3000,
       position: 'top',
+      swipeable: true,
     });
   },
 };

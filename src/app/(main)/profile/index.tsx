@@ -16,6 +16,7 @@ import {
   selectEnrolledCount,
 } from '@/store/slices/course.slice';
 import { useTheme } from '@/theme/ThemeContext';
+import { clearAppStorage } from '@/utils/storage.utils';
 import { showToast } from '@/utils/toast';
 
 interface MenuRowProps {
@@ -310,10 +311,11 @@ export default function ProfileScreen() {
   async function handleLogout() {
     try {
       await authService.logoutSession();
-    } catch {
-      // ignore — clear local state regardless
-    }
+    } catch {}
+
+    await clearAppStorage();
     await dispatch(logout());
+
     showToast.success('You have been logged out.', 'Goodbye!');
   }
 
@@ -325,7 +327,6 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 56 }}
       >
-        {/* ── Header ───────────────────────────────────────────────────── */}
         <View
           style={{
             alignItems: 'center',
@@ -424,7 +425,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* ── Progress Card ─────────────────────────────────────────────── */}
         <View style={{ marginHorizontal: 20, marginTop: 24 }}>
           <SectionLabel title="Your Learning" />
           <Card>
@@ -495,7 +495,6 @@ export default function ProfileScreen() {
           </Card>
         </View>
 
-        {/* ── Account Options ───────────────────────────────────────────── */}
         <View style={{ marginHorizontal: 20, marginTop: 28 }}>
           <SectionLabel title="Account" />
           <Card>
@@ -525,7 +524,6 @@ export default function ProfileScreen() {
           </Card>
         </View>
 
-        {/* ── Danger Zone ───────────────────────────────────────────────── */}
         <View style={{ marginHorizontal: 20, marginTop: 20 }}>
           <Card>
             <MenuRow icon="log-out-outline" label="Log out" onPress={confirmLogout} danger last />
