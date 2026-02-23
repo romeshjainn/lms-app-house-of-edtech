@@ -18,11 +18,12 @@ import CustomText from '@/components/base/AppText';
 import { CourseCard } from '@/components/course/CourseCard';
 import { FilterBar } from '@/components/course/FilterBar';
 import { ImageSlider } from '@/components/course/ImageSlider';
-import { FONTS } from '@/constants';
+import { FONTS, STORAGE_KEYS } from '@/constants';
 import ROUTES, { courseDetailRoute } from '@/constants/routes';
 import type { AppError } from '@/services/api/error-handler';
 import { handleApiError } from '@/services/api/error-handler';
 import { courseService } from '@/services/api/modules/course.service';
+import { asyncStorage } from '@/services/storage/async-storage';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   fetchAllCourses,
@@ -469,6 +470,22 @@ export default function CourseListScreen() {
     return () => clearTimeout(timer);
   }, [section]);
 
+  const appendCoursesToCache = async (newCourses: CourseListItem[]) => {
+    try {
+      const existing = await asyncStorage.getItem(STORAGE_KEYS.COURSES_CACHE_KEY);
+
+      let parsed: CourseListItem[] = existing ? JSON.parse(existing) : [];
+
+      const existingIds = new Set(parsed.map((c) => c.id));
+
+      const merged = [...parsed, ...newCourses.filter((c) => !existingIds.has(c.id))];
+
+      await asyncStorage.setItem(STORAGE_KEYS.COURSES_CACHE_KEY, JSON.stringify(merged));
+    } catch (e) {
+      console.log('Cache append error:', e);
+    }
+  };
+
   const loadPage = useCallback(
     async (pageNum: number, opts: { search: string; sort: SortOption | null; mode: LoadMode }) => {
       setLoadMode(opts.mode);
@@ -490,6 +507,7 @@ export default function CourseListScreen() {
           setCourses(sorted);
         }
 
+        await appendCoursesToCache(result.courses);
         setCurrentPage(result.page);
         setHasMore(result.hasNextPage);
         setTotalItems(result.totalItems);
@@ -498,6 +516,20 @@ export default function CourseListScreen() {
         if (opts.mode !== 'more') {
           setFetchError(appError);
           if (opts.mode === 'refresh') setIsRefreshError(true);
+        }
+
+        const cached = await asyncStorage.getItem(STORAGE_KEYS.COURSES_CACHE_KEY);
+
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setCourses(parsed);
+          setTotalItems(parsed.length);
+          setHasMore(false);
+
+          setIsRefreshError(true);
+          setFetchError(appError);
+
+          return;
         }
       } finally {
         setLoadMode(null);
