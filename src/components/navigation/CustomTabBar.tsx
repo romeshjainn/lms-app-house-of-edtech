@@ -19,14 +19,16 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { activeIcon: 'home', inactiveIcon: 'home-outline', label: 'Home' },
+  { activeIcon: 'sparkles', inactiveIcon: 'sparkles-outline', label: 'AI' },
   { activeIcon: 'library', inactiveIcon: 'library-outline', label: 'Courses' },
   { activeIcon: 'person-circle', inactiveIcon: 'person-circle-outline', label: 'Profile' },
-  { activeIcon: 'person-circle', inactiveIcon: 'person-circle-outline', label: 'AI' },
 ];
 
 export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+
+  console.log(state, 'statestate');
 
   return (
     <View
@@ -56,7 +58,7 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
         >
           {state.routes.map((route, index) => {
             const isFocused = state.index === index;
-            const tab = TABS[index];
+            const tab = TABS.find((t) => t.label.toLowerCase() === route.name);
             if (!tab) return null;
 
             return (

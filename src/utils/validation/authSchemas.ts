@@ -11,8 +11,8 @@ const passwordField = Yup.string()
 
 const usernameField = Yup.string()
   .trim()
-  .min(2, 'Username must be at least 2 characters')
-  .max(64, 'Username must be 64 characters or fewer')
+  .min(4, 'Username must be at least 4 characters')
+  .max(20, 'Username must be 20 characters or fewer')
   .matches(/^\S+$/, 'Username cannot contain spaces')
   .required('Username is required');
 
