@@ -50,8 +50,8 @@ The project follows scalable architecture practices suitable for real-world mobi
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/lms-app.git
-cd lms-app
+git clone https://github.com/romeshjainn/lms-app-house-of-edtech.git
+cd lms-app-house-of-edtech
 ```
 
 Install dependencies:
