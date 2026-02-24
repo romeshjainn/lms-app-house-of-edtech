@@ -42,7 +42,6 @@ export const CourseCard = memo(function CourseCard({
               uri: DEFAULT_COURSE_IMAGE,
             }}
             style={styles.thumbnail}
-            resizeMode="cover"
             contentFit="cover"
             cachePolicy="disk"
             transition={200}

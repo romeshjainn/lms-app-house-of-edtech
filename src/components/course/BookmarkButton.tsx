@@ -1,6 +1,6 @@
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { COLORS } from '@/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -12,12 +12,10 @@ interface BookmarkButtonProps {
   variant?: 'plain' | 'circle';
 }
 
-export function BookmarkButton({
-  courseId,
-  size = 22,
-  variant = 'plain',
-}: BookmarkButtonProps) {
+export function BookmarkButton({ courseId, size = 22, variant = 'plain' }: BookmarkButtonProps) {
   const dispatch = useAppDispatch();
+  const { isGuest } = useAppSelector((state) => state.auth);
+
   const isBookmarked = useAppSelector(selectIsBookmarked(courseId));
   const [isPending, setIsPending] = useState(false);
 
@@ -28,6 +26,8 @@ export function BookmarkButton({
     setIsPending(false);
   }
 
+  if (isGuest) return null;
+
   return (
     <TouchableOpacity
       onPress={handlePress}
@@ -36,10 +36,7 @@ export function BookmarkButton({
       style={variant === 'circle' ? styles.circle : undefined}
     >
       {isPending ? (
-        <ActivityIndicator
-          size="small"
-          color={isBookmarked ? COLORS.PRIMARY : COLORS.GRAY_400}
-        />
+        <ActivityIndicator size="small" color={isBookmarked ? COLORS.PRIMARY : COLORS.GRAY_400} />
       ) : (
         <Ionicons
           name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
