@@ -4,4 +4,6 @@ const API = {
   TIMEOUT: 15000,
 } as const;
 
+export const OPENAI_KEY = process.env.EXPO_PUBLIC_OPENAI_KEY as string;
+
 export default API;

@@ -16,16 +16,24 @@ import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import { COLORS, FONTS, ROUTES } from '@/constants';
 import { handleApiError } from '@/services/api/error-handler';
 import { authService } from '@/services/api/modules/auth.service';
-import { useAppDispatch } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { loginSuccess } from '@/store/slices/auth.slice';
+import { selectBiometricSupported, setBiometricEnabled } from '@/store/slices/preferences.slice';
 import { showToast } from '@/utils/toast';
 import type { RegisterFormValues } from '@/utils/validation/authSchemas';
 import { registerSchema } from '@/utils/validation/authSchemas';
 
 export function RegisterScreen() {
   const dispatch = useAppDispatch();
+  const biometricSupported = useAppSelector(selectBiometricSupported);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  function handleBiometric(value: boolean): void {
+    if (!biometricSupported) return;
+    dispatch(setBiometricEnabled(value));
+  }
 
   const formik = useFormik<RegisterFormValues>({
     initialValues: {
@@ -56,7 +64,7 @@ export function RegisterScreen() {
             profileImageUri: values.profileImageUri ?? null,
           }),
         );
-
+        handleBiometric(true);
         showToast.success('Welcome aboard 🎉', 'Account created successfully');
       } catch (error) {
         const appError = handleApiError(error);

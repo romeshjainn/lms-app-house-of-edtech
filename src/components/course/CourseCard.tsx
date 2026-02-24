@@ -1,9 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native';
 
 import CustomText from '@/components/base/AppText';
-import { FONTS } from '@/constants';
+import { DEFAULT_COURSE_IMAGE, FONTS } from '@/constants';
 import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
 import { useTheme } from '@/theme/ThemeContext';
 import type { CourseListItem } from '@/types/course.types';
@@ -23,33 +22,29 @@ export const CourseCard = memo(function CourseCard({
   style,
 }: CourseCardProps) {
   const { colors } = useTheme();
-  const [imgError, setImgError] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   return (
     <View
-      style={[styles.card, { backgroundColor: colors.WHITE, borderColor: colors.BORDER }, style]}
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.WHITE,
+          borderColor: colors.BORDER,
+        },
+        style,
+      ]}
     >
-      <TouchableOpacity onPress={onImagePress ?? onPress} activeOpacity={0.88}>
-        <View style={[styles.imageWrap, { backgroundColor: colors.GRAY_100 }]}>
-          <View style={[styles.thumbWrap, { backgroundColor: colors.GRAY_100 }]}>
-            {(loading || imgError || !course.thumbnail) && (
-              <Ionicons name="image-outline" size={24} color={colors.GRAY_400} />
-            )}
+      <TouchableOpacity activeOpacity={0.9} onPress={onImagePress ?? onPress}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{
+              uri: DEFAULT_COURSE_IMAGE,
+            }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+          />
 
-            {course.thumbnail && !imgError && (
-              <Image
-                source={{ uri: course.thumbnail }}
-                style={styles.thumbnail}
-                resizeMode="cover"
-                onLoadEnd={() => setLoading(false)}
-                onError={() => {
-                  setLoading(false);
-                  setImgError(true);
-                }}
-              />
-            )}
-          </View>
+          <View style={styles.overlay} />
 
           <View style={styles.bookmarkOverlay}>
             <BookmarkButton courseId={course.id} size={20} variant="circle" />
@@ -63,7 +58,7 @@ export const CourseCard = memo(function CourseCard({
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
+      <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
         <View style={styles.content}>
           <CustomText style={[styles.title, { color: colors.TEXT_PRIMARY }]} numberOfLines={2}>
             {course.title}
@@ -78,6 +73,7 @@ export const CourseCard = memo(function CourseCard({
             ) : (
               <View style={[styles.instructorAvatar, { backgroundColor: colors.GRAY_200 }]} />
             )}
+
             <CustomText
               style={[styles.instructorName, { color: colors.TEXT_SECONDARY }]}
               numberOfLines={1}
@@ -95,8 +91,8 @@ export const CourseCard = memo(function CourseCard({
   );
 });
 
-const THUMBNAIL_HEIGHT = 160;
-const AVATAR_SIZE = 24;
+const THUMBNAIL_HEIGHT = 180;
+const AVATAR_SIZE = 28;
 
 const styles = StyleSheet.create({
   card: {
@@ -106,36 +102,38 @@ const styles = StyleSheet.create({
     ...SHADOWS.MD,
   },
 
-  imageWrap: {
+  imageContainer: {
     width: '100%',
     height: THUMBNAIL_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: 'relative',
   },
-  thumbWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   thumbnail: {
-    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
-  image: {
+
+  overlay: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.15)',
   },
+
   bookmarkOverlay: {
     position: 'absolute',
     top: SPACING.SM,
     right: SPACING.SM,
   },
+
   categoryTag: {
     position: 'absolute',
     bottom: SPACING.SM,
     left: SPACING.SM,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.65)',
     paddingHorizontal: SPACING.SM,
-    paddingVertical: 3,
-    borderRadius: BORDER_RADIUS.FULL,
+    paddingVertical: 4,
+    borderRadius: 50,
   },
+
   categoryText: {
     fontFamily: FONTS.MEDIUM,
     fontSize: FONT_SIZES.XS,
@@ -145,25 +143,28 @@ const styles = StyleSheet.create({
 
   content: {
     padding: SPACING.MD,
-    gap: SPACING.XS,
   },
+
   title: {
     fontFamily: FONTS.BOLD,
     fontSize: FONT_SIZES.BASE,
     lineHeight: FONT_SIZES.BASE * 1.4,
+    marginBottom: 6,
   },
 
   instructorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.XS,
-    marginTop: 2,
+    marginBottom: 6,
   },
+
   instructorAvatar: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
+    marginRight: SPACING.SM,
   },
+
   instructorName: {
     fontFamily: FONTS.REGULAR,
     fontSize: FONT_SIZES.SM,
@@ -173,6 +174,5 @@ const styles = StyleSheet.create({
   price: {
     fontFamily: FONTS.BOLD,
     fontSize: FONT_SIZES.MD,
-    marginTop: 2,
   },
 });

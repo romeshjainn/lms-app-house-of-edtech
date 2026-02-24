@@ -1,3 +1,5 @@
+import { router } from 'expo-router';
+import { useFormik } from 'formik';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -8,22 +10,28 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useFormik } from 'formik';
 
 import CustomText from '@/components/base/AppText';
 import { COLORS, FONTS, ROUTES } from '@/constants';
-import { useAppDispatch } from '@/store';
-import { enterGuestMode, loginSuccess } from '@/store/slices/auth.slice';
-import { authService } from '@/services/api/modules/auth.service';
 import { handleApiError } from '@/services/api/error-handler';
-import { loginSchema } from '@/utils/validation/authSchemas';
+import { authService } from '@/services/api/modules/auth.service';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { enterGuestMode, loginSuccess } from '@/store/slices/auth.slice';
+import { selectBiometricSupported, setBiometricEnabled } from '@/store/slices/preferences.slice';
 import { showToast } from '@/utils/toast';
 import type { LoginFormValues } from '@/utils/validation/authSchemas';
+import { loginSchema } from '@/utils/validation/authSchemas';
 
 export function LoginScreen() {
   const dispatch = useAppDispatch();
+  const biometricSupported = useAppSelector(selectBiometricSupported);
+
   const [showPassword, setShowPassword] = useState(false);
+
+  function handleBiometric(value: boolean): void {
+    if (!biometricSupported) return;
+    dispatch(setBiometricEnabled(value));
+  }
 
   const formik = useFormik<LoginFormValues>({
     initialValues: { username: '', password: '' },
@@ -37,6 +45,7 @@ export function LoginScreen() {
             refreshToken: response.data.refreshToken,
           }),
         );
+        handleBiometric(true);
         showToast.success('Welcome back!', 'Login successful');
       } catch (error) {
         const appError = handleApiError(error);
@@ -45,7 +54,6 @@ export function LoginScreen() {
     },
   });
 
-  
   function handleGuestMode() {
     dispatch(enterGuestMode());
     router.replace(ROUTES.HOME as never);

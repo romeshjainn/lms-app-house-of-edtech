@@ -499,6 +499,7 @@ export default function CourseListScreen() {
           ...(opts.search.trim() && { query: opts.search.trim() }),
           ...sortToApiParams(opts.sort),
         });
+        console.log('API result:', result);
 
         const sorted = sortCourses(result.courses, opts.sort);
         if (opts.mode === 'more') {
