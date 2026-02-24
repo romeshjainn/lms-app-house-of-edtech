@@ -563,7 +563,7 @@ export default function HomeScreen() {
                   lineHeight: 20,
                 }}
               >
-                You're enrolled in all available courses — well done!
+                {"You're all caught up! No new course recommendations right now."}
               </CustomText>
             </View>
           ) : (
