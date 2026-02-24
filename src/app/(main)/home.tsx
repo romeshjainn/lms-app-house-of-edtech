@@ -242,42 +242,26 @@ export default function HomeScreen() {
               </CustomText>
             </View>
 
-            {isGuest ? (
-              <View style={{ alignItems: 'center' }}>
-                <Switch
-                  value={darkMode}
-                  onValueChange={handleDarkMode}
-                  trackColor={{ false: colors.GRAY_200, true: colors.SECONDARY + 'BB' }}
-                  thumbColor={darkMode ? colors.SECONDARY : colors.WHITE}
-                  ios_backgroundColor={colors.GRAY_200}
-                  style={{ marginBottom: -6 }}
-                />
-                <CustomText
-                  style={{
-                    fontSize: 12,
-                    marginTop: 0,
-                    color: colors.TEXT_SECONDARY,
-                    fontFamily: FONTS.MEDIUM,
-                  }}
-                >
-                  {darkMode ? 'Dark' : 'Light'} Mode
-                </CustomText>
-              </View>
-            ) : (
-              <TouchableOpacity
+            <View style={{ alignItems: 'center' }}>
+              <Switch
+                value={darkMode}
+                onValueChange={handleDarkMode}
+                trackColor={{ false: colors.GRAY_200, true: colors.SECONDARY + 'BB' }}
+                thumbColor={darkMode ? colors.SECONDARY : colors.WHITE}
+                ios_backgroundColor={colors.GRAY_200}
+                style={{ marginBottom: -6 }}
+              />
+              <CustomText
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 99,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: colors.GRAY_100,
+                  fontSize: 12,
+                  marginTop: 0,
+                  color: colors.TEXT_SECONDARY,
+                  fontFamily: FONTS.MEDIUM,
                 }}
-                activeOpacity={0.7}
               >
-                <Ionicons name="notifications-outline" size={20} color={colors.TEXT_PRIMARY} />
-              </TouchableOpacity>
-            )}
+                {darkMode ? 'Dark' : 'Light'} Mode
+              </CustomText>
+            </View>
           </View>
         </View>
 

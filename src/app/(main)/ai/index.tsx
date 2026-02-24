@@ -2,6 +2,7 @@ import CustomText from '@/components/base/AppText';
 import { MiniCourseCard } from '@/components/course/MiniCourseCard';
 import { FONTS } from '@/constants';
 import { askAssistant } from '@/services/ai.service';
+import { ANALYTICS_EVENTS, trackEvent } from '@/services/analytics.service';
 import { useAppSelector } from '@/store';
 import { selectBookmarkedCoursesData } from '@/store/slices/course.slice';
 import { useTheme } from '@/theme/ThemeContext';
@@ -70,6 +71,7 @@ export default function AiAssistantScreen() {
   const handleAnalyzeBookmarks = async () => {
     if (!bookmarkedCourses.length) return;
 
+    await trackEvent(ANALYTICS_EVENTS.AI_QUESTION);
     const combined = bookmarkedCourses
       .map((c, i) => `${i + 1}. ${c.category} - ${c.title ?? ''}`)
       .join('\n');
@@ -90,6 +92,7 @@ export default function AiAssistantScreen() {
   };
 
   const handleAnalyzeSingleCourse = async (course: CourseListItem) => {
+    await trackEvent(ANALYTICS_EVENTS.AI_QUESTION);
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -178,7 +181,7 @@ Explain why I should enroll in this course.`,
                 style={[
                   styles.message,
                   {
-                    backgroundColor: isUser ? colors.PRIMARY + '20' : colors.SECONDARY,
+                    backgroundColor: isUser ? colors.PRIMARY + '20' : colors.SECONDARY + '20',
                     alignSelf: isUser ? 'flex-end' : 'flex-start',
                     borderColor: colors.BORDER,
                   },

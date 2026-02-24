@@ -8,6 +8,7 @@ import { AppState } from 'react-native';
 
 import { COLORS } from '@/constants';
 import { AppProviders } from '@/providers/AppProviders';
+import { ANALYTICS_EVENTS, trackEvent } from '@/services/analytics.service';
 import {
   cancelInactivityReminder,
   scheduleInactivityReminder,
@@ -21,6 +22,10 @@ SplashScreen.preventAutoHideAsync();
 function RootNavigation() {
   const inactivityEnabled = useAppSelector(selectInactivityReminder);
   const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    trackEvent(ANALYTICS_EVENTS.APP_OPEN);
+  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (nextState) => {

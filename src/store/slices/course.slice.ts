@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit';
 
 import { STORAGE_KEYS } from '@/constants';
+import { ANALYTICS_EVENTS, trackEvent } from '@/services/analytics.service';
 import { handleApiError, type AppError } from '@/services/api/error-handler';
 import { notificationService } from '@/services/notification.service';
 import { asyncStorage } from '@/services/storage/async-storage';
@@ -68,6 +69,10 @@ export const toggleBookmark = createAsyncThunk<number[], number>(
 
     await asyncStorage.setItem(STORAGE_KEYS.BOOKMARKED_COURSES, JSON.stringify(next));
 
+    if (!isRemoving) {
+      await trackEvent(ANALYTICS_EVENTS.BOOKMARK_ADDED);
+    }
+
     if (!isRemoving && next.length === SEND_BOOKMARK_NOTIFICATION_THRESHOLD) {
       await notificationService.sendInstantNotification(
         '🎉 Congrats!',
@@ -84,10 +89,15 @@ export const toggleEnrollment = createAsyncThunk<number[], number>(
   async (courseId, { getState }) => {
     const state = getState() as RootState;
     const current = state.course.enrolledIds;
+    const isRemoving = current.includes(courseId);
 
     const next = current.includes(courseId)
       ? current.filter((id) => id !== courseId)
       : [...current, courseId];
+
+    if (!isRemoving) {
+      await trackEvent(ANALYTICS_EVENTS.ENROLLMENT_ADDED);
+    }
 
     await asyncStorage.setItem(STORAGE_KEYS.ENROLLED_COURSES, JSON.stringify(next));
 

@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   COMPLETED_COURSES: 'completed_courses',
 
   COURSES_CACHE_KEY: 'cached_courses',
+  ANALYTICS_KEY: 'local_analytics',
 } as const;
 
 export default STORAGE_KEYS;
