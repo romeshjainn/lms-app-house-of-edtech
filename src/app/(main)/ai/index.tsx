@@ -7,6 +7,7 @@ import { useAppSelector } from '@/store';
 import { selectBookmarkedCoursesData } from '@/store/slices/course.slice';
 import { useTheme } from '@/theme/ThemeContext';
 import { CourseListItem } from '@/types/course.types';
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -47,7 +48,6 @@ export default function AiAssistantScreen() {
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (e) {
-      console.log('AI Error:', e);
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,7 @@ Explain why I should enroll in this course.`,
           </CustomText>
         </View>
 
-        {bookmarkedCourses.length > 0 && (
+        {bookmarkedCourses.length > 0 ? (
           <>
             <TouchableOpacity
               style={[styles.quickAction, { backgroundColor: colors.PRIMARY + '15' }]}
@@ -164,6 +164,35 @@ Explain why I should enroll in this course.`,
               />
             </View>
           </>
+        ) : (
+          <View
+            style={{
+              marginHorizontal: 20,
+              marginTop: 12,
+              borderRadius: 16,
+              padding: 20,
+              backgroundColor: colors.GRAY_100,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons
+              name="bookmark-outline"
+              size={28}
+              color={colors.GRAY_400}
+              style={{ marginBottom: 8 }}
+            />
+            <CustomText
+              style={{
+                fontSize: 14,
+                color: colors.TEXT_SECONDARY,
+                textAlign: 'center',
+                lineHeight: 20,
+              }}
+            >
+              Bookmark courses to get AI-based personalized recommendations.
+            </CustomText>
+          </View>
         )}
 
         <FlatList

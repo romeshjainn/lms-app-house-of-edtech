@@ -3,6 +3,7 @@ const STORAGE_KEYS = {
   REFRESH_TOKEN: 'refresh_token',
 
   USER_DATA: 'user_data',
+  IS_GUEST: 'guest_mode',
 
   PROFILE_IMAGE_URI: 'profile_image_uri',
 

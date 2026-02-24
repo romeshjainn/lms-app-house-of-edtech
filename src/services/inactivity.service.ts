@@ -9,7 +9,6 @@ export async function scheduleInactivityReminder() {
   const permission = await notificationService.getPermissionStatus();
 
   if (!permission.granted) {
-    console.log('Notification permission not granted. Skipping inactivity schedule.');
     return;
   }
 
@@ -28,14 +27,10 @@ export async function scheduleInactivityReminder() {
       repeats: false,
     },
   });
-
-  console.log('Inactivity reminder scheduled.');
 }
 
 export async function cancelInactivityReminder() {
   try {
     await Notifications.cancelScheduledNotificationAsync(INACTIVITY_NOTIFICATION_ID);
-  } catch (e) {
-    console.log('No inactivity reminder to cancel.');
-  }
+  } catch (e) {}
 }

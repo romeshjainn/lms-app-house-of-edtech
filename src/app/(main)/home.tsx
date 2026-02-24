@@ -129,6 +129,10 @@ export default function HomeScreen() {
   const avatarSource = user?.profileImageUri || user?.avatarUrl;
   const initial = user?.username?.[0]?.toUpperCase() ?? '?';
 
+  const handleRetryCourses = () => {
+    dispatch(fetchAllCourses());
+  };
+
   const handleSeeAllBookmarked = useCallback(() => {
     router.push(ROUTES.BOOKMARKS as never);
   }, []);
@@ -521,26 +525,52 @@ export default function HomeScreen() {
             <View
               style={{
                 marginHorizontal: 20,
-                flexDirection: 'row',
-                alignItems: 'center',
                 borderRadius: 16,
                 padding: 16,
-                paddingVertical: 80,
                 backgroundColor: colors.GRAY_100,
-                gap: 12,
               }}
             >
-              <Ionicons name="alert-circle-outline" size={26} color={colors.ERROR || '#EF4444'} />
-              <CustomText
+              <View
                 style={{
-                  flex: 1,
-                  fontSize: 14,
-                  color: colors.TEXT_SECONDARY,
-                  lineHeight: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  marginBottom: 16,
                 }}
               >
-                Failed to load courses. Please try again.
-              </CustomText>
+                <Ionicons name="alert-circle-outline" size={26} color={colors.ERROR || '#EF4444'} />
+                <CustomText
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    color: colors.TEXT_SECONDARY,
+                    lineHeight: 20,
+                  }}
+                >
+                  Failed to load courses. Please try again.
+                </CustomText>
+              </View>
+
+              <TouchableOpacity
+                onPress={handleRetryCourses}
+                style={{
+                  alignSelf: 'center',
+                  backgroundColor: colors.PRIMARY,
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                }}
+              >
+                <CustomText
+                  style={{
+                    color: '#fff',
+                    fontSize: 14,
+                    fontWeight: '600',
+                  }}
+                >
+                  Try Again
+                </CustomText>
+              </TouchableOpacity>
             </View>
           ) : recommendedCourses.length === 0 ? (
             <View
