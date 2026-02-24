@@ -54,8 +54,8 @@ export function LoginScreen() {
     },
   });
 
-  function handleGuestMode() {
-    dispatch(enterGuestMode());
+  async function handleGuestMode() {
+    await dispatch(enterGuestMode()).unwrap();
     router.replace(ROUTES.HOME as never);
   }
 

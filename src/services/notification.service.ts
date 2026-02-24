@@ -84,7 +84,6 @@ async function sendInstantNotification(title: string, body: string) {
   const permission = await getPermissionStatus();
 
   if (!permission.granted) {
-    console.log('Notification permission not granted.');
     return;
   }
 

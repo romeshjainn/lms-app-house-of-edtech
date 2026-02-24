@@ -31,7 +31,7 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>LMS App</Text>
+      <Text style={styles.title}>EdTech LMS</Text>
       <Text style={styles.subtitle}>House of EdTech</Text>
       <ActivityIndicator style={styles.spinner} color="rgba(255,255,255,0.5)" size="small" />
     </View>

@@ -481,9 +481,7 @@ export default function CourseListScreen() {
       const merged = [...parsed, ...newCourses.filter((c) => !existingIds.has(c.id))];
 
       await asyncStorage.setItem(STORAGE_KEYS.COURSES_CACHE_KEY, JSON.stringify(merged));
-    } catch (e) {
-      console.log('Cache append error:', e);
-    }
+    } catch (e) {}
   };
 
   const loadPage = useCallback(

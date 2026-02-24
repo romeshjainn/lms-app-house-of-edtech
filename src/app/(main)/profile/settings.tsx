@@ -160,6 +160,7 @@ export default function SettingsScreen() {
 
   async function handleNotifications(value: boolean): Promise<void> {
     if (!value) {
+      dispatch(setInactivityReminder(value));
       dispatch(setNotificationsEnabled(false));
       return;
     }
@@ -194,7 +195,7 @@ export default function SettingsScreen() {
     if (notificationPerm === 'denied') return 'Permission denied · Open Settings to enable';
     if (notificationPerm === 'undetermined') return 'Tap to allow notification access';
     return notificationsEnabled
-      ? 'Course updates and announcements'
+      ? 'Bookmark course notification'
       : 'Notifications are currently paused';
   }
 
@@ -281,6 +282,7 @@ export default function SettingsScreen() {
               sublabel="Remind me after 24 hours of inactivity"
               value={inactivityReminder}
               onToggle={handleInactivityReminder}
+              disabled={!notificationsEnabled || notificationPerm !== 'granted'}
               last
             />
           </SettingsCard>

@@ -9,7 +9,6 @@ export const ANALYTICS_EVENTS = {
 
 export async function trackEvent(event: string) {
   const current = await asyncStorage.getItem(event);
-  console.log(`Tracking event: ${event}, current count: ${current}`);
   const count = current ? Number(current) : 0;
   await asyncStorage.setItem(event, String(count + 1));
 }

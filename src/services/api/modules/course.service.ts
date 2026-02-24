@@ -1,16 +1,16 @@
-import type { ApiResponse } from '../api-client';
-import apiClient from '../api-client';
 import type {
-  CoursePage,
   CourseDetail,
   CourseInstructor,
   CourseListItem,
+  CoursePage,
   ListQueryParams,
   RawPaginatedList,
   RawProduct,
   RawProductListItem,
   RawRandomUser,
 } from '@/types/course.types';
+import type { ApiResponse } from '../api-client';
+import apiClient from '../api-client';
 
 const ENDPOINTS = {
   RANDOM_USERS: '/public/randomusers',
@@ -43,8 +43,8 @@ async function fetchProductsPage(params: ListQueryParams = {}): Promise<{
       params: {
         limit: params.limit ?? DEFAULT_PRODUCT_LIMIT,
         ...(params.page !== undefined && { page: params.page }),
-        ...(params.query    && { query:    params.query }),
-        ...(params.sortBy   && { sortBy:   params.sortBy }),
+        ...(params.query && { query: params.query }),
+        ...(params.sortBy && { sortBy: params.sortBy }),
         ...(params.sortType && { sortType: params.sortType }),
       },
     },
@@ -53,7 +53,7 @@ async function fetchProductsPage(params: ListQueryParams = {}): Promise<{
   return {
     items: d.data,
     meta: {
-      page:       d.page,
+      page: d.page,
       totalPages: d.totalPages,
       totalItems: d.totalItems,
       hasNextPage: d.nextPage,
@@ -121,10 +121,7 @@ function placeholderInstructor(): CourseInstructor {
 }
 
 async function getCourses(params?: ListQueryParams): Promise<CourseListItem[]> {
-  const [{ items: products }, users] = await Promise.all([
-    fetchProductsPage(params),
-    fetchUsers(),
-  ]);
+  const [{ items: products }, users] = await Promise.all([fetchProductsPage(params), fetchUsers()]);
 
   const instructorPool = users.length > 0 ? users : [];
 
@@ -136,15 +133,10 @@ async function getCourses(params?: ListQueryParams): Promise<CourseListItem[]> {
 }
 
 async function getCourseDetail(courseId: number): Promise<CourseDetail> {
-  const [product, users] = await Promise.all([
-    fetchProduct(courseId),
-    fetchUsers(),
-  ]);
+  const [product, users] = await Promise.all([fetchProduct(courseId), fetchUsers()]);
 
   const instructor =
-    users.length > 0
-      ? mapInstructor(users[courseId % users.length])
-      : placeholderInstructor();
+    users.length > 0 ? mapInstructor(users[courseId % users.length]) : placeholderInstructor();
 
   return mapCourseDetail(product, instructor);
 }
@@ -165,7 +157,7 @@ async function getCoursesPage(params: ListQueryParams = {}): Promise<CoursePage>
 
   return {
     courses,
-    page:       meta.page,
+    page: meta.page,
     totalPages: meta.totalPages,
     totalItems: meta.totalItems,
     hasNextPage: meta.hasNextPage,
