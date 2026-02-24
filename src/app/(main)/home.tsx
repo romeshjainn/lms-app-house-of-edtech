@@ -1,17 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  FlatList,
-  Image,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  View,
-  type ListRenderItemInfo,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
 import CustomText from '@/components/base/AppText';
 import { CourseCard } from '@/components/course/CourseCard';
 import { MINI_CARD_WIDTH, MiniCourseCard } from '@/components/course/MiniCourseCard';
@@ -32,6 +18,19 @@ import {
 import { selectDarkMode, setDarkMode } from '@/store/slices/preferences.slice';
 import { useTheme } from '@/theme/ThemeContext';
 import type { CourseListItem } from '@/types/course.types';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  ScrollView,
+  Switch,
+  TouchableOpacity,
+  View,
+  type ListRenderItemInfo,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CONTINUE_LIMIT = 5;
 const RECOMMENDED_LIMIT = 4;
@@ -196,6 +195,9 @@ export default function HomeScreen() {
                     borderWidth: 2.5,
                     borderColor: colors.SECONDARY_LIGHT,
                   }}
+                  contentFit="cover"
+                  cachePolicy="disk"
+                  transition={200}
                 />
               ) : (
                 <View

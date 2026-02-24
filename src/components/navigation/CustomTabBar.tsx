@@ -1,34 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
-import { type ComponentProps } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import CustomText from '@/components/base/AppText';
 import { FONTS } from '@/constants';
+import { useAppSelector } from '@/store';
 import { useTheme } from '@/theme/ThemeContext';
 
-type IoniconsName = ComponentProps<typeof Ionicons>['name'];
-
-interface TabDef {
-  activeIcon: IoniconsName;
-  inactiveIcon: IoniconsName;
-  label: string;
-}
-
-const TABS: TabDef[] = [
-  { activeIcon: 'home', inactiveIcon: 'home-outline', label: 'Home' },
-  { activeIcon: 'sparkles', inactiveIcon: 'sparkles-outline', label: 'AI' },
-  { activeIcon: 'library', inactiveIcon: 'library-outline', label: 'Courses' },
-  { activeIcon: 'person-circle', inactiveIcon: 'person-circle-outline', label: 'Profile' },
-];
-
-export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
+export function CustomTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
-  console.log(state, 'statestate');
+  const { isGuest } = useAppSelector((state) => state.auth);
 
   return (
     <View
@@ -57,9 +41,11 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
           }}
         >
           {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
             const isFocused = state.index === index;
-            const tab = TABS.find((t) => t.label.toLowerCase() === route.name);
-            if (!tab) return null;
+            const tab = route;
+
+            if (!tab || (isGuest && tab.name === 'ai')) return null;
 
             return (
               <Pressable
@@ -93,11 +79,12 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                 )}
 
                 <View className="items-center" style={{ gap: 3 }}>
-                  <Ionicons
-                    name={isFocused ? tab.activeIcon : tab.inactiveIcon}
-                    size={22}
-                    color={isFocused ? colors.PRIMARY : colors.GRAY_400}
-                  />
+                  {options.tabBarIcon &&
+                    options.tabBarIcon({
+                      size: 22,
+                      focused: isFocused,
+                      color: isFocused ? colors.PRIMARY : colors.GRAY_400,
+                    })}
                   <CustomText
                     style={{
                       fontFamily: isFocused ? FONTS.BOLD : FONTS.REGULAR,
@@ -106,7 +93,7 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                       letterSpacing: isFocused ? 0.2 : 0,
                     }}
                   >
-                    {tab.label}
+                    {options.title || route.name}
                   </CustomText>
                 </View>
               </Pressable>

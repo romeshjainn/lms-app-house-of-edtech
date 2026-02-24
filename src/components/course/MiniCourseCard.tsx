@@ -1,5 +1,6 @@
+import { Image } from 'expo-image';
 import { memo, useState } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import CustomText from '@/components/base/AppText';
 import { DEFAULT_COURSE_IMAGE, FONTS } from '@/constants';
@@ -41,6 +42,9 @@ export const MiniCourseCard = memo(function MiniCourseCard({
             style={styles.thumbnail}
             resizeMode="cover"
             onError={() => setImgError(true)}
+            contentFit="cover"
+            cachePolicy="disk"
+            transition={200}
           />
         ) : (
           <View

@@ -2,7 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Alert, Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+
+import { Image } from 'expo-image';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomText from '@/components/base/AppText';
@@ -351,6 +354,9 @@ export default function ProfileScreen() {
                   borderWidth: 3.5,
                   borderColor: colors.SECONDARY_LIGHT,
                 }}
+                contentFit="cover"
+                cachePolicy="disk"
+                transition={200}
               />
             ) : (
               <View

@@ -1,5 +1,6 @@
+import { Image } from 'expo-image';
 import { memo } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native';
 
 import CustomText from '@/components/base/AppText';
 import { DEFAULT_COURSE_IMAGE, FONTS } from '@/constants';
@@ -42,6 +43,9 @@ export const CourseCard = memo(function CourseCard({
             }}
             style={styles.thumbnail}
             resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="disk"
+            transition={200}
           />
 
           <View style={styles.overlay} />
@@ -69,6 +73,9 @@ export const CourseCard = memo(function CourseCard({
               <Image
                 source={{ uri: encodeURI(course.instructor.avatarUrl) }}
                 style={[styles.instructorAvatar, { backgroundColor: colors.GRAY_200 }]}
+                contentFit="cover"
+                cachePolicy="disk"
+                transition={200}
               />
             ) : (
               <View style={[styles.instructorAvatar, { backgroundColor: colors.GRAY_200 }]} />

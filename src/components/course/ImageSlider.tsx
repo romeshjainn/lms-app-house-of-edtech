@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useCallback, useState } from 'react';
-import { Image, ScrollView, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
+import { ScrollView, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 
 import CustomText from '@/components/base/AppText';
 import { FONTS } from '@/constants';
@@ -95,6 +96,9 @@ export function ImageSlider({ images, height = 260 }: ImageSliderProps) {
                 source={{ uri: encodeURI(uri) }}
                 style={{ width: sliderWidth, height }}
                 resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="disk"
+                transition={200}
                 onError={() => markError(index)}
               />
             )}

@@ -6,6 +6,9 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -34,7 +37,6 @@ function buildResult(
 ): NotificationPermissionResult {
   const status = mapExpoStatus(permissions.status);
   const granted = permissions.granted;
-  // On iOS canAskAgain is false after the user permanently denies
   const permanentlyDenied = status === 'denied' && permissions.canAskAgain === false;
 
   return { status, granted, permanentlyDenied };
@@ -78,7 +80,28 @@ async function requestPermission(): Promise<NotificationPermissionResult> {
   }
 }
 
+async function sendInstantNotification(title: string, body: string) {
+  const permission = await getPermissionStatus();
+
+  if (!permission.granted) {
+    console.log('Notification permission not granted.');
+    return;
+  }
+
+  await ensureAndroidChannel();
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      sound: true,
+    },
+    trigger: null,
+  });
+}
+
 export const notificationService = {
   getPermissionStatus,
   requestPermission,
+  sendInstantNotification,
 } as const;

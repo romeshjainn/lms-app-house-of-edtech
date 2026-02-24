@@ -54,7 +54,6 @@ Answer clearly and briefly in 2-3 short sentences.
   const data = await response.json();
 
   if (!response.ok) {
-    console.log(data);
     throw new Error(data.error?.message || 'AI error');
   }
 
