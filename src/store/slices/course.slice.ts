@@ -2,10 +2,12 @@ import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit'
 
 import { STORAGE_KEYS } from '@/constants';
 import { handleApiError, type AppError } from '@/services/api/error-handler';
+import { notificationService } from '@/services/notification.service';
 import { asyncStorage } from '@/services/storage/async-storage';
 import type { CourseListItem, CourseStoreState } from '@/types/course.types';
 import type { RootState } from '../root-reducer';
 
+const SEND_BOOKMARK_NOTIFICATION_THRESHOLD = 5;
 const initialState: CourseStoreState = {
   bookmarkedIds: [],
   enrolledIds: [],
@@ -58,11 +60,20 @@ export const toggleBookmark = createAsyncThunk<number[], number>(
     const state = getState() as RootState;
     const current = state.course.bookmarkedIds;
 
+    const isRemoving = current.includes(courseId);
+
     const next = current.includes(courseId)
       ? current.filter((id) => id !== courseId)
       : [...current, courseId];
 
     await asyncStorage.setItem(STORAGE_KEYS.BOOKMARKED_COURSES, JSON.stringify(next));
+
+    if (!isRemoving && next.length === SEND_BOOKMARK_NOTIFICATION_THRESHOLD) {
+      await notificationService.sendInstantNotification(
+        '🎉 Congrats!',
+        'You have bookmarked 5 courses!',
+      );
+    }
 
     return next;
   },

@@ -1,21 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Image, StyleSheet, TouchableOpacity, View, type ListRenderItemInfo } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  type ListRenderItemInfo,
+} from 'react-native';
+
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomText from '@/components/base/AppText';
 import { FONTS } from '@/constants';
 import { courseDetailRoute } from '@/constants/routes';
-import { useTheme } from '@/theme/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  selectBookmarkedCoursesData,
-  toggleBookmark,
-} from '@/store/slices/course.slice';
-import type { CourseListItem } from '@/types/course.types';
+import { selectBookmarkedCoursesData, toggleBookmark } from '@/store/slices/course.slice';
 import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
+import { useTheme } from '@/theme/ThemeContext';
+import type { CourseListItem } from '@/types/course.types';
+import { Image } from 'expo-image';
 
 const keyExtractor = (item: CourseListItem) => String(item.id);
 
@@ -38,6 +43,9 @@ function BookmarkRow({ item, index }: { item: CourseListItem; index: number }) {
               style={StyleSheet.absoluteFill}
               resizeMode="cover"
               onError={() => setImgError(true)}
+              contentFit="cover"
+              cachePolicy="disk"
+              transition={200}
             />
           ) : (
             <Ionicons name="image-outline" size={22} color={colors.GRAY_400} />
@@ -53,7 +61,10 @@ function BookmarkRow({ item, index }: { item: CourseListItem; index: number }) {
           <CustomText style={[styles.rowTitle, { color: colors.TEXT_PRIMARY }]} numberOfLines={2}>
             {item.title}
           </CustomText>
-          <CustomText style={[styles.rowInstructor, { color: colors.TEXT_SECONDARY }]} numberOfLines={1}>
+          <CustomText
+            style={[styles.rowInstructor, { color: colors.TEXT_SECONDARY }]}
+            numberOfLines={1}
+          >
             {item.instructor.name}
           </CustomText>
           <CustomText style={[styles.rowPrice, { color: colors.PRIMARY }]}>
@@ -107,7 +118,10 @@ export default function BookmarksScreen() {
   const bookmarked = useAppSelector(selectBookmarkedCoursesData);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.BACKGROUND }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.BACKGROUND }]}
+      edges={['top']}
+    >
       <Animated.View
         entering={FadeIn.duration(200)}
         style={[styles.header, { backgroundColor: colors.WHITE, borderBottomColor: colors.BORDER }]}
@@ -213,7 +227,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.XL, gap: SPACING.MD },
+  emptyWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.XL,
+    gap: SPACING.MD,
+  },
   emptyIcon: {
     width: 80,
     height: 80,

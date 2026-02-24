@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { COLORS, FONTS } from '@/constants';
 import { FONT_SIZES, SHADOWS, SPACING } from '@/theme';
@@ -50,7 +51,13 @@ export function AvatarPicker({ uri, onPick, onRemove }: AvatarPickerProps) {
       <View style={styles.avatarWrapper}>
         {uri ? (
           <>
-            <Image source={{ uri }} style={styles.avatar} />
+            <Image
+              source={{ uri }}
+              style={styles.avatar}
+              contentFit="cover"
+              cachePolicy="disk"
+              transition={200}
+            />
             {/* Remove badge — top-right */}
             <TouchableOpacity
               style={[styles.badge, styles.badgeRemove]}

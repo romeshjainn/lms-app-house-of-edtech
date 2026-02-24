@@ -1,16 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
 import CustomText from '@/components/base/AppText';
 import { BookmarkButton } from '@/components/course/BookmarkButton';
 import { EnrollButton } from '@/components/course/EnrollButton';
@@ -24,6 +11,12 @@ import { BORDER_RADIUS, FONT_SIZES, SHADOWS, SPACING } from '@/theme';
 import type { AppColors } from '@/theme/ThemeContext';
 import { useTheme } from '@/theme/ThemeContext';
 import type { CourseDetail } from '@/types/course.types';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function RatingStars({ rating, colors }: { rating: number; colors: AppColors }) {
   const full = Math.floor(rating);
@@ -397,6 +390,9 @@ export default function CourseDetailScreen() {
               <Image
                 source={{ uri: course.instructor.avatarUrl }}
                 style={styles.instructorAvatar}
+                contentFit="cover"
+                cachePolicy="disk"
+                transition={200}
               />
             ) : (
               <View style={[styles.instructorAvatar, styles.instructorAvatarFallback]}>
