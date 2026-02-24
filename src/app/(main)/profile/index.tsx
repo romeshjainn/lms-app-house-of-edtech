@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Image } from 'expo-image';
 
@@ -10,17 +10,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomText from '@/components/base/AppText';
 import { FONTS, ROUTES } from '@/constants';
+import { ANALYTICS_EVENTS, getAnalytics } from '@/services/analytics.service';
 import { authService } from '@/services/api/modules/auth.service';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { logout, mergeProfileImage } from '@/store/slices/auth.slice';
-import {
-  selectCompletedCount,
-  selectCompletionPercentage,
-  selectEnrolledCount,
-} from '@/store/slices/course.slice';
 import { useTheme } from '@/theme/ThemeContext';
 import { clearAppStorage } from '@/utils/storage.utils';
 import { showToast } from '@/utils/toast';
+import { useCallback, useState } from 'react';
 
 interface MenuRowProps {
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -262,10 +259,51 @@ export default function ProfileScreen() {
   const { colors } = useTheme();
   const dispatch = useAppDispatch();
   const { user, isGuest } = useAppSelector((state) => state.auth);
-  const enrolledCount = useAppSelector(selectEnrolledCount);
-  const completedCount = useAppSelector(selectCompletedCount);
-  const completionPct = useAppSelector(selectCompletionPercentage);
 
+  const [analyticsStats, setAnalyticsStats] = useState<
+    { label: string; value: number; color: string }[]
+  >([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function loadAnalytics() {
+        const analytics = await getAnalytics();
+
+        if (!isActive) return;
+
+        setAnalyticsStats([
+          {
+            label: 'AI Questions',
+            value: analytics[ANALYTICS_EVENTS.AI_QUESTION] ?? 0,
+            color: colors.ACCENT,
+          },
+          {
+            label: 'App Opens',
+            value: analytics[ANALYTICS_EVENTS.APP_OPEN] ?? 0,
+            color: colors.INFO,
+          },
+          {
+            label: 'Bookmarks Added',
+            value: analytics[ANALYTICS_EVENTS.BOOKMARK_ADDED] ?? 0,
+            color: colors.SECONDARY,
+          },
+          {
+            label: 'Enroll Actions',
+            value: analytics[ANALYTICS_EVENTS.ENROLLMENT_ADDED] ?? 0,
+            color: colors.PRIMARY,
+          },
+        ]);
+      }
+
+      loadAnalytics();
+
+      return () => {
+        isActive = false;
+      };
+    }, [colors]),
+  );
   if (isGuest || !user) return <GuestProfile />;
 
   const avatarSource = user.profileImageUri || user.avatarUrl;
@@ -432,71 +470,19 @@ export default function ProfileScreen() {
         </View>
 
         <View style={{ marginHorizontal: 20, marginTop: 24 }}>
-          <SectionLabel title="Your Learning" />
+          <SectionLabel title="Your Analytics" />
           <Card>
-            <View style={{ flexDirection: 'row', paddingVertical: 20, paddingHorizontal: 16 }}>
-              <StatItem label="Enrolled" value={enrolledCount} color={colors.PRIMARY} showDivider />
-              <StatItem
-                label="Completed"
-                value={completedCount}
-                color={colors.SUCCESS}
-                showDivider
-              />
-              <StatItem
-                label="Progress"
-                value={`${completionPct}%`}
-                color={colors.SECONDARY}
-                showDivider={false}
-              />
-            </View>
-
-            <View
-              style={{
-                paddingHorizontal: 20,
-                paddingBottom: 20,
-                borderTopWidth: 1,
-                borderTopColor: colors.BORDER,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginTop: 16,
-                  marginBottom: 8,
-                }}
-              >
-                <CustomText style={{ fontSize: 12, color: colors.TEXT_SECONDARY }}>
-                  {enrolledCount === 0
-                    ? 'Enrol in a course to start tracking'
-                    : completionPct === 100
-                      ? 'All courses completed!'
-                      : `${completedCount} of ${enrolledCount} completed`}
-                </CustomText>
-                <CustomText
-                  style={{ fontFamily: FONTS.BOLD, fontSize: 12, color: colors.SECONDARY }}
-                >
-                  {completionPct}%
-                </CustomText>
-              </View>
-              <View
-                style={{
-                  width: '100%',
-                  borderRadius: 99,
-                  overflow: 'hidden',
-                  height: 7,
-                  backgroundColor: colors.GRAY_100,
-                }}
-              >
-                <View
-                  style={{
-                    height: '100%',
-                    width: `${Math.min(completionPct, 100)}%`,
-                    backgroundColor: colors.SECONDARY,
-                    borderRadius: 99,
-                  }}
-                />
-              </View>
+            <View style={styles.statsGrid}>
+              {analyticsStats.map((item, index) => (
+                <View key={item.label} style={styles.statWrapper}>
+                  <StatItem
+                    label={item.label}
+                    value={item.value}
+                    color={item.color}
+                    showDivider={false}
+                  />
+                </View>
+              ))}
             </View>
           </Card>
         </View>
@@ -539,3 +525,17 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+
+  statWrapper: {
+    width: '48%', // 2 columns
+    marginBottom: 16,
+  },
+});
