@@ -162,6 +162,8 @@ eas build --profile preview --platform android
 * Secure authentication flow
 * Persistent login state
 * Course enrollment tracking
+* Cource Caching
+* App Analytics 
 * Loading and empty state handling
 * Error handling UI
 * Biometric login support
